@@ -42,11 +42,6 @@ public class ResultadoGrafico {
     private TipoSolucion tipoSolucion;
 
     /**
-     * Mensaje descriptivo del resultado.
-     */
-    private String mensaje;
-
-    /**
      * Verifica si se encontró una solución óptima.
      *
      * @return true si hay punto óptimo y es factible
@@ -72,28 +67,6 @@ public class ResultadoGrafico {
      */
     public int getNumeroVertices() {
         return vertices.size();
-    }
-
-    /**
-     * Genera un mensaje descriptivo del resultado.
-     *
-     * @return mensaje explicativo
-     */
-    public String generarMensaje() {
-        return switch (tipoSolucion) {
-            case UNICA -> String.format(
-                    "Solución óptima encontrada en (%.4f, %.4f) con Z = %.4f",
-                    puntoOptimo.getX1(), puntoOptimo.getX2(), puntoOptimo.getValorZ()
-            );
-            case MULTIPLE -> String.format(
-                    "Soluciones múltiples. Una solución óptima es (%.4f, %.4f) con Z = %.4f",
-                    puntoOptimo.getX1(), puntoOptimo.getX2(), puntoOptimo.getValorZ()
-            );
-            case NO_FACTIBLE ->
-                    "El problema no tiene región factible. Las restricciones son contradictorias.";
-            case NO_ACOTADO ->
-                    "El problema no está acotado. La función objetivo puede mejorar indefinidamente.";
-        };
     }
 
 }

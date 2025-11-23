@@ -49,13 +49,4 @@ public record ProblemaGraficoDTO(
             double ladoDerecho
     ) {
     }
-
-    /**
-     * Obtiene el número de restricciones (sin contar no negatividad).
-     *
-     * @return cantidad de restricciones
-     */
-    public int getNumeroRestricciones() {
-        return restricciones != null ? restricciones.size() : 0;
-    }
 }

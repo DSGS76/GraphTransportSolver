@@ -43,28 +43,27 @@ public final class Constants {
      */
     public static class Global{
         public static final String API_BASE_PATH = "/api";
+        public static final String API_VERSION = "/v1";
 
         private Global(){}
     }
 
     /**
-     * Constantes relacionadas con los servicios de grafos y rutas de endpoints.
+     * Constantes relacionadas con los servicios del método gráfico y rutas de endpoints.
      */
-    public static class Maquina {
-        public static final String MAQUINA_SERVICE_PATH = "/maquina";
-        public static final String MAQUINA_SERVICE_PATH_STATE = "/estado";
-        public static final String MAQUINA_SERVICE_PATH_PRODUCTS = "/productos";
-        public static final String MAQUINA_SERVICE_PATH_SELECT = "/seleccionar";
-        public static final String MAQUINA_SERVICE_PATH_INSERT_MONEY = "/insertar-dinero";
-        public static final String MAQUINA_SERVICE_PATH_CONFIRM_PAYMENT = "/confirmar-pago";
-        public static final String MAQUINA_SERVICE_PATH_DISPENSE = "/dispensar";
-        public static final String MAQUINA_SERVICE_PATH_CANCEL = "/cancelar";
-        public static final String MAQUINA_SERVICE_PATH_CURRENT_TRANSACTION = "/transaccion-actual";
-        public static final String MAQUINA_SERVICE_PATH_HISTORY = "/historial";
-        public static final String MAQUINA_SERVICE_PATH_RESTART = "/reiniciar";
-        public static final String MAQUINA_SERVICE_PATH_AVAILABLE_MONEY = "/dinero-disponible";
+    public static class Grafico {
+        public static final String GRAFICO_SERVICE_PATH = "/grafico";
 
-        private Maquina(){}
+        private Grafico(){}
+    }
+
+    /**
+     * Constantes relacionadas con los servicios de modelo de transporte y rutas de endpoints.
+     */
+    public static class Transporte {
+        public static final String TRANSPORTE_SERVICE_PATH = "/transporte";
+
+        private Transporte(){}
     }
 
     /**

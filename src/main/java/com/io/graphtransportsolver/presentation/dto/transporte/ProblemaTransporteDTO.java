@@ -21,55 +21,5 @@ public record ProblemaTransporteDTO(
         String[] nombresDestinos,
         MetodoSolucionInicial metodoInicial
 ) {
-    /**
-     * Obtiene el número de orígenes.
-     *
-     * @return cantidad de orígenes
-     */
-    public int numOrigenes() {
-        return ofertas != null ? ofertas.length : 0;
-    }
-
-    /**
-     * Obtiene el número de destinos.
-     *
-     * @return cantidad de destinos
-     */
-    public int numDestinos() {
-        return demandas != null ? demandas.length : 0;
-    }
-
-    /**
-     * Verifica si el problema está balanceado.
-     *
-     * @return true si la suma de ofertas es igual a la suma de demandas
-     */
-    public boolean estaBalanceado() {
-        return Math.abs(sumaOfertas() - sumaDemandas()) < 1e-6;
-    }
-
-    /**
-     * Calcula la oferta total.
-     *
-     * @return suma de todas las ofertas
-     */
-    public double sumaOfertas() {
-        if (ofertas == null) return 0.0;
-        double suma = 0;
-        for (double oferta : ofertas) suma += oferta;
-        return suma;
-    }
-
-    /**
-     * Calcula la demanda total.
-     *
-     * @return suma de todas las demandas
-     */
-    public double sumaDemandas() {
-        if (demandas == null) return 0.0;
-        double suma = 0;
-        for (double demanda : demandas) suma += demanda;
-        return suma;
-    }
 }
 
