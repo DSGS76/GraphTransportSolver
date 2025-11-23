@@ -2,6 +2,9 @@ package com.io.graphtransportsolver.presentation.dto.grafico;
 
 import com.io.graphtransportsolver.models.grafico.enums.TipoDesigualdad;
 import com.io.graphtransportsolver.models.grafico.enums.TipoOptimizacion;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
@@ -14,8 +17,13 @@ import java.util.List;
  * @param incluirNoNegatividad indica si se incluyen restricciones de no negatividad (x₁, x₂ ≥ 0)
  */
 public record ProblemaGraficoDTO(
+        @NotNull(message = "La función objetivo es obligatoria")
         FuncionObjetivoDTO funcionObjetivo,
+        @NotNull(message = "Las restricciones son obligatorias")
+        @NotEmpty(message = "Debe haber al menos una restricción")
+        @Valid
         List<RestriccionDTO> restricciones,
+        @NotNull(message = "Debe especificar si incluir restricciones de no negatividad")
         boolean incluirNoNegatividad
 ) {
     /**
@@ -29,6 +37,7 @@ public record ProblemaGraficoDTO(
     public record FuncionObjetivoDTO(
             double coeficienteX1,
             double coeficienteX2,
+            @NotNull(message = "Debe especificar el tipo de optimización")
             TipoOptimizacion tipo
     ) {
     }
@@ -45,6 +54,7 @@ public record ProblemaGraficoDTO(
     public record RestriccionDTO(
             double coeficienteX1,
             double coeficienteX2,
+            @NotNull(message = "Debe especificar el tipo de desigualdad")
             TipoDesigualdad tipo,
             double ladoDerecho
     ) {

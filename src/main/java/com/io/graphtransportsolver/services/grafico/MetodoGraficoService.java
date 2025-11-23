@@ -3,8 +3,10 @@ package com.io.graphtransportsolver.services.grafico;
 import com.io.graphtransportsolver.algoritmos.grafico.CalculadorVertices;
 import com.io.graphtransportsolver.models.grafico.*;
 import com.io.graphtransportsolver.models.grafico.enums.TipoDesigualdad;
+import com.io.graphtransportsolver.presentation.dto.ApiResponseDTO;
 import com.io.graphtransportsolver.presentation.dto.grafico.ProblemaGraficoDTO;
 import com.io.graphtransportsolver.presentation.dto.grafico.SolucionGraficoDTO;
+import com.io.graphtransportsolver.utils.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,16 @@ import java.util.stream.Collectors;
  * mediante el método gráfico.
  *
  * Responsabilidades:
- * - Validar entrada
+ * - Validar lógica de negocio
  * - Convertir DTOs a modelos de dominio
  * - Coordinar algoritmos
  * - Convertir resultados a DTOs de respuesta
+ *
+ * Nota: Las validaciones estructurales (nulls, tipos) son manejadas
+ * por Jakarta Validation en el controller.
+ *
+ * @author Duvan Gil
+ * @version 1.0
  */
 @Service
 @RequiredArgsConstructor
@@ -34,55 +42,78 @@ public class MetodoGraficoService {
      * Resuelve un problema de programación lineal usando el método gráfico.
      *
      * @param problemaDTO problema recibido desde el frontend
-     * @return solución con punto óptimo, vértices y tipo de solución
-     * @throws IllegalArgumentException si el problema no es válido
+     * @return ApiResponseDTO con la solución o información de error
      */
-    public SolucionGraficoDTO resolverProblema(ProblemaGraficoDTO problemaDTO) {
-        log.info("Iniciando resolución de problema gráfico");
+    public ApiResponseDTO<SolucionGraficoDTO> resolverProblema(ProblemaGraficoDTO problemaDTO) {
+        log.info("{}", Constants.Message.START_SERVICE);
+        log.debug("{}{}", Constants.Message.REQUEST, problemaDTO);
 
-        // 1. Validar entrada
-        validarProblemaDTO(problemaDTO);
+        ApiResponseDTO<SolucionGraficoDTO> response = new ApiResponseDTO<>();
 
-        // 2. Convertir DTO a modelo de dominio
-        ProblemaGrafico problema = convertirDTOaModelo(problemaDTO);
+        try {
+            // 1. Validar lógica de negocio
+            validarLogicaNegocio(problemaDTO);
 
-        // 3. Validar problema de dominio
-        if (!problema.esValido()) {
-            throw new IllegalArgumentException("El problema no está correctamente formulado");
+            // 2. Convertir DTO a modelo de dominio
+            ProblemaGrafico problema = convertirDTOaModelo(problemaDTO);
+
+            // 3. Validar problema de dominio
+            if (!problema.esValido()) {
+                log.warn("El problema no está correctamente formulado");
+                response.BadOperation();
+                return response;
+            }
+
+            // 4. Resolver usando algoritmos
+            ResultadoGrafico resultado = calculadorVertices.calcular(problema);
+
+            log.info("Problema resuelto. Tipo de solución: {}", resultado.getTipoSolucion());
+
+            // 5. Convertir resultado a DTO
+            SolucionGraficoDTO solucionDTO = convertirResultadoADTO(resultado);
+
+            // 6. Configurar respuesta exitosa
+            response.SuccessOperation(solucionDTO);
+
+            log.debug("{}{}", Constants.Message.RESPONSE, response);
+            log.info("{}", Constants.Message.FINISH_SERVICE);
+
+            return response;
+
+        } catch (IllegalArgumentException e) {
+            log.warn("Error de validación: {}", e.getMessage());
+            response.BadOperation();
+            response.setMessage(e.getMessage());
+            return response;
+
+        } catch (ArithmeticException e) {
+            log.error("Error aritmético: {}", e.getMessage());
+            response.BadOperation();
+            response.setMessage(e.getMessage());
+            return response;
+
+        } catch (Exception e) {
+            log.error("Error inesperado al resolver problema gráfico", e);
+            response.FailedOperation();
+            return response;
         }
-
-        // 4. Resolver usando algoritmos
-        ResultadoGrafico resultado = calculadorVertices.calcular(problema);
-
-        log.info("Problema resuelto. Tipo de solución: {}", resultado.getTipoSolucion());
-
-        // 5. Convertir resultado a DTO
-        return convertirResultadoADTO(resultado);
     }
 
     /**
-     * Valida que el DTO del problema contenga información correcta.
+     * Válida reglas de lógica de negocio del problema.
+     * Las validaciones estructurales (nulls, tipos) son manejadas por Jakarta Validation.
+     *
+     * @param problemaDTO problema a validar
+     * @throws IllegalArgumentException sí hay errores de lógica de negocio
      */
-    private void validarProblemaDTO(ProblemaGraficoDTO problemaDTO) {
-        if (problemaDTO == null) {
-            throw new IllegalArgumentException("El problema no puede ser nulo");
-        }
-
-        if (problemaDTO.funcionObjetivo() == null) {
-            throw new IllegalArgumentException("La función objetivo es obligatoria");
-        }
-
-        if (problemaDTO.restricciones() == null || problemaDTO.restricciones().isEmpty()) {
-            throw new IllegalArgumentException("Debe haber al menos una restricción");
-        }
-
+    private void validarLogicaNegocio(ProblemaGraficoDTO problemaDTO) {
         // Validar que la función objetivo tenga al menos un coeficiente no cero
         ProblemaGraficoDTO.FuncionObjetivoDTO fo = problemaDTO.funcionObjetivo();
         if (Math.abs(fo.coeficienteX1()) < 1e-10 && Math.abs(fo.coeficienteX2()) < 1e-10) {
             throw new IllegalArgumentException("La función objetivo debe tener al menos un coeficiente diferente de cero");
         }
 
-        // Validar restricciones
+        // Validar que cada restricción tenga al menos un coeficiente no cero
         for (int i = 0; i < problemaDTO.restricciones().size(); i++) {
             ProblemaGraficoDTO.RestriccionDTO r = problemaDTO.restricciones().get(i);
 
@@ -91,19 +122,17 @@ public class MetodoGraficoService {
                         String.format("La restricción %d debe tener al menos un coeficiente diferente de cero", i + 1)
                 );
             }
-
-            if (r.tipo() == null) {
-                throw new IllegalArgumentException(
-                        String.format("La restricción %d debe tener un tipo de desigualdad", i + 1)
-                );
-            }
         }
+
+        log.debug("Validación de lógica de negocio completada exitosamente");
     }
 
     /**
      * Convierte el DTO recibido del frontend al modelo de dominio.
      */
     private ProblemaGrafico convertirDTOaModelo(ProblemaGraficoDTO dto) {
+        log.debug("Convirtiendo DTO a modelo de dominio");
+
         // Convertir función objetivo
         FuncionObjetivo funcionObjetivo = FuncionObjetivo.builder()
                 .coeficienteX1(dto.funcionObjetivo().coeficienteX1())
@@ -121,9 +150,11 @@ public class MetodoGraficoService {
                         .build())
                 .collect(Collectors.toList());
 
-        // Si se incluyen restricciones de no negatividad explícitas, filtrarlas
-        // ya que el modelo las maneja internamente
+        // Filtrar restricciones de no negatividad explícita
         restricciones = filtrarRestriccionesNoNegatividad(restricciones);
+
+        log.debug("Problema convertido: {} restricciones, FO tipo {}",
+                restricciones.size(), funcionObjetivo.getTipo());
 
         return ProblemaGrafico.builder()
                 .funcionObjetivo(funcionObjetivo)
@@ -133,7 +164,7 @@ public class MetodoGraficoService {
     }
 
     /**
-     * Filtra restricciones de no negatividad explícitas (x1 >= 0, x2 >= 0)
+     * Filtra restricciones de no negatividad explícita (x1 >= 0, x2 >= 0),
      * ya que el modelo las maneja con el flag restriccionesNoNegatividad.
      */
     private List<Restriccion> filtrarRestriccionesNoNegatividad(List<Restriccion> restricciones) {
@@ -164,6 +195,8 @@ public class MetodoGraficoService {
      * Convierte el resultado del algoritmo a DTO para el frontend.
      */
     private SolucionGraficoDTO convertirResultadoADTO(ResultadoGrafico resultado) {
+        log.debug("Convirtiendo resultado a DTO");
+
         // Convertir punto óptimo
         SolucionGraficoDTO.PuntoDTO puntoOptimoDTO = null;
         if (resultado.getPuntoOptimo() != null) {
@@ -193,15 +226,15 @@ public class MetodoGraficoService {
      */
     private SolucionGraficoDTO.PuntoDTO convertirPuntoADTO(Punto punto) {
         return new SolucionGraficoDTO.PuntoDTO(
-                punto.getX1(),
-                punto.getX2(),
-                punto.getValorZ(),
+                formatearValor(punto.getX1()),
+                formatearValor(punto.getX2()),
+                formatearValor(punto.getValorZ()),
                 punto.isEsFactible()
         );
     }
 
     /**
-     * Valida y formatea valores numéricos para evitar problemas de precisión.
+     * Formatea valores numéricos para evitar problemas de precisión.
      */
     private double formatearValor(double valor) {
         // Redondear a 10 decimales para evitar errores de precisión

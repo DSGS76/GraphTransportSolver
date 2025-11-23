@@ -53,6 +53,7 @@ public final class Constants {
      */
     public static class Grafico {
         public static final String GRAFICO_SERVICE_PATH = "/grafico";
+        public static final String GRAFICO_SERVICE_PATH_RESOLVE = "/resolver";
 
         private Grafico(){}
     }
