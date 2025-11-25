@@ -37,6 +37,12 @@ public class ResultadoGrafico {
     private List<Punto> regionFactible = new ArrayList<>();
 
     /**
+     * Lista de restricciones del problema (para graficar y referencia).
+     */
+    @Builder.Default
+    private List<Restriccion> restricciones = new ArrayList<>();
+
+    /**
      * Tipo de solución encontrada.
      */
     private TipoSolucion tipoSolucion;

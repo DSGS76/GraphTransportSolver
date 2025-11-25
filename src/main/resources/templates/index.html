@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::main})}">
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="hero-icon">📊</div>
+                <h1 class="hero-title">Graph Transport Solver</h1>
+                <p class="hero-description">
+                    Aplicación para resolver problemas de Investigación de Operaciones I.
+                    Implementa algoritmos de optimización para programación lineal y modelos de transporte.
+                </p>
+            </div>
+        </section>
+
+        <!-- Main Container -->
+        <div class="container index-container">
+            <!-- Métodos Disponibles -->
+            <section class="methods-section">
+                <h2 class="methods-title">Métodos Disponibles</h2>
+                <div class="methods-grid">
+                    <!-- Método Gráfico -->
+                    <div class="method-card">
+                        <div class="method-icon">📐</div>
+                        <h3 class="method-title">Método Gráfico</h3>
+                        <p class="method-description">
+                            Resuelve problemas de programación lineal con 2 variables de decisión.
+                            Visualiza la región factible y encuentra el punto óptimo.
+                        </p>
+                        <div class="method-features">
+                            <span class="feature-badge">✓ Visualización gráfica</span>
+                            <span class="feature-badge">✓ 2 variables</span>
+                            <span class="feature-badge">✓ Maximización/Minimización</span>
+                        </div>
+                        <a th:href="@{/grafico}" class="method-button">
+                            <span>Resolver Problema</span>
+                            <span class="button-arrow">→</span>
+                        </a>
+                    </div>
+
+                    <!-- Modelo de Transporte -->
+                    <div class="method-card">
+                        <div class="method-icon">🚚</div>
+                        <h3 class="method-title">Modelo de Transporte</h3>
+                        <p class="method-description">
+                            Optimiza la distribución de productos desde múltiples orígenes a múltiples destinos
+                            minimizando los costos de transporte.
+                        </p>
+                        <div class="method-features">
+                            <span class="feature-badge">✓ Método de la esquina noroeste</span>
+                            <span class="feature-badge">✓ Método de Vogel</span>
+                            <span class="feature-badge">✓ Costos mínimos</span>
+                        </div>
+                        <a th:href="@{/transporte}" class="method-button method-button-disabled">
+                            <span>Próximamente</span>
+                            <span class="button-arrow">→</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Características -->
+            <section class="features-section">
+                <h2 class="features-title">Características Principales</h2>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">⚡</div>
+                        <h4 class="feature-title">Rápido y Eficiente</h4>
+                        <p class="feature-text">Algoritmos optimizados para resolver problemas complejos en segundos</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📊</div>
+                        <h4 class="feature-title">Visualización Interactiva</h4>
+                        <p class="feature-text">Gráficas dinámicas para entender mejor las soluciones</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🎯</div>
+                        <h4 class="feature-title">Precisión Garantizada</h4>
+                        <p class="feature-text">Cálculos exactos con validaciones completas</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">💡</div>
+                        <h4 class="feature-title">Ejemplos Incluidos</h4>
+                        <p class="feature-text">Ejemplos predefinidos para empezar rápidamente</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+</body>
+</html>
+

@@ -56,18 +56,6 @@ public class Restriccion {
     }
 
     /**
-     * Verifica si un punto está sobre la línea de esta restricción.
-     *
-     * @param x1 valor de la primera variable
-     * @param x2 valor de la segunda variable
-     * @return true si el punto está sobre la línea (restricción activa)
-     */
-    public boolean esActiva(double x1, double x2) {
-        double ladoIzquierdo = coeficienteX1 * x1 + coeficienteX2 * x2;
-        return Math.abs(ladoIzquierdo - ladoDerecho) < EPSILON;
-    }
-
-    /**
      * Calcula la intersección de esta restricción con el eje x₁ (cuando x₂ = 0).
      *
      * @return punto de intersección o null si no existe

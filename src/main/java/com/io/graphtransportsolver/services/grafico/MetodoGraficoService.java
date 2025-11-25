@@ -20,13 +20,12 @@ import java.util.stream.Collectors;
  * mediante el método gráfico.
  *
  * Responsabilidades:
- * - Validar lógica de negocio
+ * - Validar entrada básica (nulls)
  * - Convertir DTOs a modelos de dominio
  * - Coordinar algoritmos
  * - Convertir resultados a DTOs de respuesta
  *
- * Nota: Las validaciones estructurales (nulls, tipos) son manejadas
- * por Jakarta Validation en el controller.
+ * La validación de negocio (coeficientes válidos) se delega a los modelos de dominio.
  *
  * @author Duvan Gil
  * @version 1.0
@@ -35,6 +34,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class MetodoGraficoService {
+
+    private static final double EPSILON = 1e-10;
 
     private final CalculadorVertices calculadorVertices;
 
@@ -51,16 +52,17 @@ public class MetodoGraficoService {
         ApiResponseDTO<SolucionGraficoDTO> response = new ApiResponseDTO<>();
 
         try {
-            // 1. Validar lógica de negocio
-            validarLogicaNegocio(problemaDTO);
+            // 1. Validar entrada básica (nulls y vacíos)
+            validarEntradaBasica(problemaDTO);
 
             // 2. Convertir DTO a modelo de dominio
             ProblemaGrafico problema = convertirDTOaModelo(problemaDTO);
 
-            // 3. Validar problema de dominio
+            // 3. Validar problema de dominio (usa esValido() del modelo)
             if (!problema.esValido()) {
                 log.warn("El problema no está correctamente formulado");
                 response.BadOperation();
+                response.setMessage("El problema no está correctamente formulado");
                 return response;
             }
 
@@ -69,8 +71,8 @@ public class MetodoGraficoService {
 
             log.info("Problema resuelto. Tipo de solución: {}", resultado.getTipoSolucion());
 
-            // 5. Convertir resultado a DTO
-            SolucionGraficoDTO solucionDTO = convertirResultadoADTO(resultado);
+            // 5. Convertir resultado a DTO (incluye restricciones para graficar)
+            SolucionGraficoDTO solucionDTO = convertirResultadoADTO(resultado, problema);
 
             // 6. Configurar respuesta exitosa
             response.SuccessOperation(solucionDTO);
@@ -100,31 +102,39 @@ public class MetodoGraficoService {
     }
 
     /**
-     * Válida reglas de lógica de negocio del problema.
-     * Las validaciones estructurales (nulls, tipos) son manejadas por Jakarta Validation.
+     * Válida la entrada básica del DTO (nulls y colecciones vacías).
+     * La validación de negocio (coeficientes válidos) se hace en el modelo de dominio.
      *
-     * @param problemaDTO problema a validar
-     * @throws IllegalArgumentException sí hay errores de lógica de negocio
+     * @throws IllegalArgumentException sí hay errores de validación básica
      */
-    private void validarLogicaNegocio(ProblemaGraficoDTO problemaDTO) {
-        // Validar que la función objetivo tenga al menos un coeficiente no cero
-        ProblemaGraficoDTO.FuncionObjetivoDTO fo = problemaDTO.funcionObjetivo();
-        if (Math.abs(fo.coeficienteX1()) < 1e-10 && Math.abs(fo.coeficienteX2()) < 1e-10) {
-            throw new IllegalArgumentException("La función objetivo debe tener al menos un coeficiente diferente de cero");
+    private void validarEntradaBasica(ProblemaGraficoDTO problemaDTO) {
+        if (problemaDTO == null) {
+            throw new IllegalArgumentException("El problema no puede ser nulo");
         }
 
-        // Validar que cada restricción tenga al menos un coeficiente no cero
+        if (problemaDTO.funcionObjetivo() == null) {
+            throw new IllegalArgumentException("La función objetivo es obligatoria");
+        }
+
+        if (problemaDTO.restricciones() == null || problemaDTO.restricciones().isEmpty()) {
+            throw new IllegalArgumentException("Debe haber al menos una restricción");
+        }
+
+        if (problemaDTO.funcionObjetivo().tipo() == null) {
+            throw new IllegalArgumentException("Debe especificar el tipo de optimización");
+        }
+
+        // Validar que las restricciones tengan tipo
         for (int i = 0; i < problemaDTO.restricciones().size(); i++) {
             ProblemaGraficoDTO.RestriccionDTO r = problemaDTO.restricciones().get(i);
-
-            if (Math.abs(r.coeficienteX1()) < 1e-10 && Math.abs(r.coeficienteX2()) < 1e-10) {
+            if (r.tipo() == null) {
                 throw new IllegalArgumentException(
-                        String.format("La restricción %d debe tener al menos un coeficiente diferente de cero", i + 1)
+                        String.format("La restricción %d debe tener un tipo de desigualdad", i + 1)
                 );
             }
         }
 
-        log.debug("Validación de lógica de negocio completada exitosamente");
+        log.debug("Validación básica completada exitosamente");
     }
 
     /**
@@ -172,15 +182,15 @@ public class MetodoGraficoService {
 
         for (Restriccion r : restricciones) {
             // Detectar x1 >= 0 (coef x1 = 1, coef x2 = 0, lado derecho = 0)
-            boolean esX1NoNegativa = Math.abs(r.getCoeficienteX1() - 1) < 1e-10 &&
-                    Math.abs(r.getCoeficienteX2()) < 1e-10 &&
-                    Math.abs(r.getLadoDerecho()) < 1e-10 &&
+            boolean esX1NoNegativa = Math.abs(r.getCoeficienteX1() - 1) < EPSILON &&
+                    Math.abs(r.getCoeficienteX2()) < EPSILON &&
+                    Math.abs(r.getLadoDerecho()) < EPSILON &&
                     r.getTipo() == TipoDesigualdad.MAYOR_IGUAL;
 
             // Detectar x2 >= 0
-            boolean esX2NoNegativa = Math.abs(r.getCoeficienteX1()) < 1e-10 &&
-                    Math.abs(r.getCoeficienteX2() - 1) < 1e-10 &&
-                    Math.abs(r.getLadoDerecho()) < 1e-10 &&
+            boolean esX2NoNegativa = Math.abs(r.getCoeficienteX1()) < EPSILON &&
+                    Math.abs(r.getCoeficienteX2() - 1) < EPSILON &&
+                    Math.abs(r.getLadoDerecho()) < EPSILON &&
                     r.getTipo() == TipoDesigualdad.MAYOR_IGUAL;
 
             if (!esX1NoNegativa && !esX2NoNegativa) {
@@ -193,13 +203,14 @@ public class MetodoGraficoService {
 
     /**
      * Convierte el resultado del algoritmo a DTO para el frontend.
+     * Usa las restricciones del modelo ResultadoGrafico.
      */
-    private SolucionGraficoDTO convertirResultadoADTO(ResultadoGrafico resultado) {
+    private SolucionGraficoDTO convertirResultadoADTO(ResultadoGrafico resultado, ProblemaGrafico problema) {
         log.debug("Convirtiendo resultado a DTO");
 
-        // Convertir punto óptimo
+        // Convertir punto óptimo (usa método del modelo si existe)
         SolucionGraficoDTO.PuntoDTO puntoOptimoDTO = null;
-        if (resultado.getPuntoOptimo() != null) {
+        if (resultado.tieneSolucion()) {
             puntoOptimoDTO = convertirPuntoADTO(resultado.getPuntoOptimo());
         }
 
@@ -208,15 +219,27 @@ public class MetodoGraficoService {
                 .map(this::convertirPuntoADTO)
                 .collect(Collectors.toList());
 
-        // Convertir región factible
+        // Convertir región factible (ya viene ordenada del algoritmo)
         List<SolucionGraficoDTO.PuntoDTO> regionFactibleDTO = resultado.getRegionFactible().stream()
                 .map(this::convertirPuntoADTO)
                 .collect(Collectors.toList());
+
+        // Convertir restricciones desde el modelo
+        List<SolucionGraficoDTO.RestriccionDTO> restriccionesDTO = resultado.getRestricciones().stream()
+                .map(r -> new SolucionGraficoDTO.RestriccionDTO(
+                        r.getCoeficienteX1(),
+                        r.getCoeficienteX2(),
+                        r.getLadoDerecho(),
+                        r.getTipo().name()
+                ))
+                .collect(Collectors.toList());
+
 
         return new SolucionGraficoDTO(
                 puntoOptimoDTO,
                 verticesDTO,
                 regionFactibleDTO,
+                restriccionesDTO,
                 resultado.getTipoSolucion()
         );
     }

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::main})}">
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="hero-icon">📐</div>
+                <h1 class="hero-title">Método Gráfico</h1>
+                <p class="hero-description">
+                    Resuelve problemas de programación lineal con 2 variables mediante el método gráfico.
+                    Visualiza la región factible y encuentra el punto óptimo de forma interactiva.
+                </p>
+            </div>
+        </section>
+
+        <!-- Main Container con Layout de 2 Columnas -->
+        <div class="container">
+            <!-- Card: Definir Problema -->
+            <section class="card">
+                <div class="card-header">
+                    <div class="card-header-content">
+                        <span class="card-icon">✏️</span>
+                        <h2 class="card-title">Definir Problema</h2>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Grid de 2 columnas: Izquierda y Derecha -->
+                    <div class="problema-grid">
+
+                        <!-- ===== COLUMNA IZQUIERDA ===== -->
+                        <div class="problema-left">
+                            <!-- Función Objetivo -->
+                            <div class="section-box">
+                                <h3 class="section-title">
+                                    <span class="section-icon">🎯</span>
+                                    Función Objetivo
+                                </h3>
+
+                                <div class="objective-function">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label" for="tipoOptimizacion">Tipo</label>
+                                            <select id="tipoOptimizacion" class="form-control">
+                                                <option value="MAXIMIZAR">Maximizar</option>
+                                                <option value="MINIMIZAR">Minimizar</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="equation-display">
+                                        <span class="equation-label">Z =</span>
+                                        <input type="number" id="coefZ_x1" class="equation-input" value="3" step="any"
+                                               placeholder="0">
+                                        <span class="equation-var">x₁</span>
+                                        <span class="equation-operator">+</span>
+                                        <input type="number" id="coefZ_x2" class="equation-input" value="5" step="any"
+                                               placeholder="0">
+                                        <span class="equation-var">x₂</span>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <!-- Botones de Acción -->
+                            <div class="action-buttons">
+                                <button id="btnResolver" class="btn btn-success btn-lg">
+                                    <span class="btn-icon">🚀</span>
+                                    <span class="btn-text">Resolver</span>
+                                </button>
+                                <button id="btnEjemplo" class="btn btn-accent btn-lg">
+                                    <span class="btn-icon">💡</span>
+                                    <span class="btn-text">Ejemplo</span>
+                                </button>
+                                <button id="btnLimpiar" class="btn btn-secondary btn-lg">
+                                    <span class="btn-icon">🗑️</span>
+                                    <span class="btn-text">Limpiar</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ===== COLUMNA DERECHA ===== -->
+                        <div class="problema-right">
+                            <!-- Restricciones -->
+                            <div class="section-box restricciones-box">
+                                <div class="section-header">
+                                    <h3 class="section-title">
+                                        <span class="section-icon">📋</span>
+                                        Restricciones
+                                    </h3>
+                                    <button id="btnAgregarRestriccion" class="btn btn-accent btn-sm">
+                                        <span>➕</span> Agregar
+                                    </button>
+                                </div>
+
+                                <div id="restriccionesContainer" class="restrictions-container">
+                                    <!-- Las restricciones se agregarán dinámicamente aquí -->
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+                <!-- ===== RESULTADOS ===== -->
+                <section id="resultadosSection" class="card card-results" style="display: none;">
+                    <div class="card-header">
+                        <div class="card-header-content">
+                            <span class="card-icon">📊</span>
+                            <h2 class="card-title">Resultados</h2>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- Información de la Solución -->
+                        <div id="solucionInfo" class="solution-info">
+                            <!-- Se llenará dinámicamente -->
+                        </div>
+
+                        <!-- Gráfica -->
+                        <div class="chart-container">
+                            <canvas id="graficoChart"></canvas>
+                        </div>
+
+                        <!-- Tabla de Vértices -->
+                        <div id="verticesTableContainer" class="vertices-table-container">
+                            <!-- Se llenará dinámicamente -->
+                        </div>
+                    </div>
+                </section>
+
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Resolviendo problema...</p>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toastContainer" class="toast-container"></div>
+    </main>
+</div>
+
+<script th:src="@{/js/grafico/form.js}"></script>
+<script th:src="@{/js/grafico/api.js}"></script>
+<script th:src="@{/js/grafico/chart.js}"></script>
+<script th:src="@{/js/grafico/main.js}"></script>
+</body>
+</html>

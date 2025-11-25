@@ -1,0 +1,26 @@
+<header th:fragment="header" xmlns:th="http://www.thymeleaf.org">
+    <nav class="main-nav">
+        <div class="nav-content">
+            <div class="nav-brand">
+                <a th:href="@{/}" style="text-decoration: none; color: inherit;">
+                    <h1>📊 Graph Transport Solver</h1>
+                </a>
+            </div>
+
+            <div class="nav-links">
+                <a th:href="@{/}" class="nav-link">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Inicio</span>
+                </a>
+                <a th:href="@{/grafico}" class="nav-link">
+                    <span class="nav-icon">📐</span>
+                    <span class="nav-text">Método Gráfico</span>
+                </a>
+                <a th:href="@{/transporte}" class="nav-link">
+                    <span class="nav-icon">🚚</span>
+                    <span class="nav-text">Transporte</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>

@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content)">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<header th:replace="~{fragments/header :: header}"></header>
+<main th:replace="${content}">
+    <!-- Contenido dinámico -->
+</main>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

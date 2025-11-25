@@ -5,7 +5,6 @@ import com.io.graphtransportsolver.presentation.dto.grafico.SolucionGraficoDTO;
 import com.io.graphtransportsolver.presentation.dto.ApiResponseDTO;
 import com.io.graphtransportsolver.services.grafico.MetodoGraficoService;
 import com.io.graphtransportsolver.utils.Constants;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
@@ -36,7 +35,7 @@ public class MetodoGraficoController {
      * @return ResponseEntity con ApiResponseDTO conteniendo la solución
      */
     @PostMapping(Constants.Grafico.GRAFICO_SERVICE_PATH_RESOLVE)
-    public ResponseEntity<?> resolverProblema(@Valid @RequestBody ProblemaGraficoDTO problemaDTO) {
+    public ResponseEntity<?> resolverProblema(@RequestBody ProblemaGraficoDTO problemaDTO) {
         log.info("=== {} ===", Constants.Message.START_SERVICE);
         log.debug("{}{}", Constants.Message.REQUEST, problemaDTO);
 

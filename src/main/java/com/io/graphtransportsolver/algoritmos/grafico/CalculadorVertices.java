@@ -42,7 +42,7 @@ public class CalculadorVertices {
 
         // 4. Detectar si no hay región factible
         if (verticesFactibles.isEmpty()) {
-            return construirResultadoNoFactible(intersecciones);
+            return construirResultadoNoFactible(intersecciones, problema);
         }
 
         // 5. Evaluar función objetivo en vértices factibles
@@ -50,7 +50,7 @@ public class CalculadorVertices {
 
         // 6. Detectar si es no acotado
         if (esNoAcotado(problema, verticesFactibles)) {
-            return construirResultadoNoAcotado(verticesFactibles);
+            return construirResultadoNoAcotado(verticesFactibles, problema);
         }
 
         // 7. Encontrar punto óptimo
@@ -67,10 +67,14 @@ public class CalculadorVertices {
 
         TipoSolucion tipo = esMultiple ? TipoSolucion.MULTIPLE : TipoSolucion.UNICA;
 
+        // Ordenar vértices en sentido antihorario para formar el polígono correctamente
+        List<Punto> regionOrdenada = ordenarVerticesAntihorario(verticesFactibles);
+
         return ResultadoGrafico.builder()
                 .puntoOptimo(optimo)
                 .vertices(verticesFactibles)
-                .regionFactible(verticesFactibles) // Podrías ordenarlos para formar el polígono
+                .regionFactible(regionOrdenada)
+                .restricciones(problema.getRestricciones())
                 .tipoSolucion(tipo)
                 .build();
     }
@@ -144,12 +148,15 @@ public class CalculadorVertices {
 
     /**
      * Construye resultado para problema no factible.
+     * IMPORTANTE: Incluye restricciones para que se puedan graficar y el usuario
+     * pueda ver visualmente por qué el problema no tiene solución factible.
      */
-    private ResultadoGrafico construirResultadoNoFactible(List<Punto> intersecciones) {
+    private ResultadoGrafico construirResultadoNoFactible(List<Punto> intersecciones, ProblemaGrafico problema) {
         return ResultadoGrafico.builder()
                 .puntoOptimo(null)
                 .vertices(intersecciones)
                 .regionFactible(List.of())
+                .restricciones(problema.getRestricciones())  // ✅ Para graficar
                 .tipoSolucion(TipoSolucion.NO_FACTIBLE)
                 .build();
     }
@@ -157,13 +164,43 @@ public class CalculadorVertices {
     /**
      * Construye resultado para problema no acotado.
      */
-    private ResultadoGrafico construirResultadoNoAcotado(List<Punto> vertices) {
+    private ResultadoGrafico construirResultadoNoAcotado(List<Punto> vertices, ProblemaGrafico problema) {
+        List<Punto> regionOrdenada = ordenarVerticesAntihorario(vertices);
+
         return ResultadoGrafico.builder()
                 .puntoOptimo(null)
                 .vertices(vertices)
-                .regionFactible(vertices)
+                .regionFactible(regionOrdenada)
+                .restricciones(problema.getRestricciones())
                 .tipoSolucion(TipoSolucion.NO_ACOTADO)
                 .build();
+    }
+
+    /**
+     * Ordena los vértices en sentido antihorario alrededor del centroide.
+     * Esto es necesario para que el frontend pueda dibujar correctamente
+     * el polígono de la región factible sin líneas cruzadas.
+     *
+     * @param vertices lista de vértices a ordenar
+     * @return lista ordenada en sentido antihorario
+     */
+    private List<Punto> ordenarVerticesAntihorario(List<Punto> vertices) {
+        if (vertices == null || vertices.size() < 3) {
+            return vertices;
+        }
+
+        // 1. Calcular el centroide (centro geométrico)
+        double centroX = vertices.stream().mapToDouble(Punto::getX1).average().orElse(0.0);
+        double centroY = vertices.stream().mapToDouble(Punto::getX2).average().orElse(0.0);
+
+        // 2. Ordenar por ángulo polar respecto al centroide
+        return vertices.stream()
+                .sorted((p1, p2) -> {
+                    double angulo1 = Math.atan2(p1.getX2() - centroY, p1.getX1() - centroX);
+                    double angulo2 = Math.atan2(p2.getX2() - centroY, p2.getX1() - centroX);
+                    return Double.compare(angulo1, angulo2);
+                })
+                .collect(Collectors.toList());
     }
 
 }
