@@ -36,24 +36,7 @@ const MainApp = (() => {
      */
     const init = () => {
         setupEventListeners();
-        verificarConexion();
         console.log('✅ Aplicación inicializada correctamente');
-    };
-
-    /**
-     * Verifica conexión con el backend
-     */
-    const verificarConexion = async () => {
-        try {
-            const health = await ApiService.checkHealth();
-            if (health.success) {
-                console.log('💚 Conexión con backend: OK');
-            } else {
-                console.warn('⚠️ Backend no responde correctamente');
-            }
-        } catch (error) {
-            console.error('❌ No se puede conectar con el backend:', error);
-        }
     };
 
     /**

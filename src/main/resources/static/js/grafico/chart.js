@@ -7,6 +7,7 @@
  */
 const ChartManager = (() => {
     let chartInstance = null;
+    let regionOpacity = 1.0; // Opacidad actual de la región factible (para animaciones)
 
     /**
      * Renderiza la gráfica con los resultados
@@ -29,6 +30,9 @@ const ChartManager = (() => {
             chartInstance = null;
         }
 
+        // Resetear opacidad de región factible
+        regionOpacity = 1.0;
+
         // Preparar datos para la gráfica
         const datasets = prepararDatasets(solucion);
         const limits = calcularLimites(solucion);
@@ -37,7 +41,8 @@ const ChartManager = (() => {
         const config = {
             type: 'scatter',
             data: { datasets },
-            options: crearOpciones(solucion, limits)
+            options: crearOpciones(solucion, limits),
+            plugins: [regionFactiblePlugin]
         };
 
         // Crear gráfica
@@ -88,10 +93,11 @@ const ChartManager = (() => {
             });
         }
 
-        // ✅ CORRECCIÓN CRÍTICA: Manejo mejorado de la región factible
+        // Manejo mejorado de la región factible
         if (solucion.regionFactible && solucion.regionFactible.length > 0) {
             const regionDataset = crearDatasetRegionFactible(solucion, limits);
             if (regionDataset) {
+                console.log('📐 Dataset región factible:', regionDataset);
                 datasets.push(regionDataset);
             }
         }
@@ -164,53 +170,215 @@ const ChartManager = (() => {
     };
 
     /**
-     * ✅ NUEVA FUNCIÓN MEJORADA: Crea el dataset de la región factible
-     * Maneja correctamente regiones acotadas y no acotadas
+     * Analiza geométricamente si los vértices forman un polígono cerrado
+     */
+    const analizarGeometriaRegion = (vertices) => {
+        if (!vertices || vertices.length < 3) {
+            return {
+                esPoligonoCerrado: false,
+                esConvexa: false,
+                razon: 'Menos de 3 vértices'
+            };
+        }
+
+        // 1. CÁLCULO CORRECTO: Calcular TODAS las distancias entre vértices consecutivos
+        const distancias = [];
+
+        for (let i = 0; i < vertices.length - 1; i++) {
+            const v1 = vertices[i];
+            const v2 = vertices[i + 1];
+            const dist = Math.sqrt(
+                Math.pow(v2.x - v1.x, 2) +
+                Math.pow(v2.y - v1.y, 2)
+            );
+            distancias.push(dist);
+        }
+
+        // Distancia de cierre (último → primero)
+        const primerVertice = vertices[0];
+        const ultimoVertice = vertices[vertices.length - 1];
+        const distanciaCierre = Math.sqrt(
+            Math.pow(ultimoVertice.x - primerVertice.x, 2) +
+            Math.pow(ultimoVertice.y - primerVertice.y, 2)
+        );
+
+        // ✅ CORRECCIÓN: Incluir distancia de cierre en el cálculo del promedio
+        const todasLasDistancias = [...distancias, distanciaCierre];
+        const sumaDistancias = todasLasDistancias.reduce((sum, d) => sum + d, 0);
+        const longitudPromedioLado = sumaDistancias / todasLasDistancias.length;
+
+        // Ratio: ¿El cierre es similar a los demás lados?
+        const ratioDistancia = distanciaCierre / longitudPromedioLado;
+
+        // Un polígono está cerrado si el lado de cierre es <= 5x el promedio
+        const esPoligonoCerrado = ratioDistancia <= 5.0;
+
+        console.log('📐 Análisis de cierre:', {
+            numVertices: vertices.length,
+            distancias: distancias.map(d => d.toFixed(2)),
+            distanciaCierre: distanciaCierre.toFixed(2),
+            longitudPromedio: longitudPromedioLado.toFixed(2),
+            ratio: ratioDistancia.toFixed(3),
+            resultado: esPoligonoCerrado ? 'CERRADO ✅' : 'ABIERTO ❌'
+        });
+
+        // 2. Verificar convexidad usando productos cruzados
+        let esConvexa = true;
+        if (vertices.length >= 3) {
+            let signoPrevio = 0;
+
+            for (let i = 0; i < vertices.length; i++) {
+                const p1 = vertices[i];
+                const p2 = vertices[(i + 1) % vertices.length];
+                const p3 = vertices[(i + 2) % vertices.length];
+
+                // Producto cruzado de vectores (p1->p2) y (p2->p3)
+                const dx1 = p2.x - p1.x;
+                const dy1 = p2.y - p1.y;
+                const dx2 = p3.x - p2.x;
+                const dy2 = p3.y - p2.y;
+
+                const productoCruzado = dx1 * dy2 - dy1 * dx2;
+
+                if (Math.abs(productoCruzado) > 1e-6) {
+                    const signoActual = Math.sign(productoCruzado);
+
+                    if (signoPrevio !== 0 && signoActual !== signoPrevio) {
+                        esConvexa = false;
+                        break;
+                    }
+                    signoPrevio = signoActual;
+                }
+            }
+        }
+
+        // 3. Verificar si hay vértices en el "infinito" (región no acotada)
+        const UMBRAL_INFINITO = 1e6;
+        const hayVerticesInfinitos = vertices.some(v =>
+            Math.abs(v.x) > UMBRAL_INFINITO || Math.abs(v.y) > UMBRAL_INFINITO
+        );
+
+        return {
+            esPoligonoCerrado: esPoligonoCerrado && !hayVerticesInfinitos,
+            esConvexa,
+            distanciaCierre,
+            ratioDistancia,
+            longitudPromedioLado,
+            hayVerticesInfinitos,
+            razon: esPoligonoCerrado
+                ? `Polígono cerrado (ratio: ${ratioDistancia.toFixed(3)})`
+                : `Polígono abierto (ratio: ${ratioDistancia.toFixed(3)})`
+        };
+    };
+
+    /**
+     * Crea el dataset de región factible con análisis geométrico
      */
     const crearDatasetRegionFactible = (solucion, limits) => {
         const regionData = solucion.regionFactible.map(p => ({ x: p.x1, y: p.x2 }));
 
-        // ✅ DETECCIÓN MEJORADA: Usar el tipo de solución del backend
-        const esRegionAcotada = solucion.tipoSolucion !== 'NO_ACOTADO';
+        if (regionData.length === 0) {
+            return null; // No hay vértices
+        }
 
-        console.log('🔍 Análisis región factible:', {
-            tipoSolucion: solucion.tipoSolucion,
+        // ✅ CASO ESPECIAL: Solo 1 punto - Región no acotada desde un punto hacia el infinito
+        if (regionData.length === 1) {
+            const puntoInicial = regionData[0];
+
+            // Crear un área que se extiende desde el punto hacia el infinito
+            // (en la práctica, hacia los límites del gráfico)
+            const areaNoAcotada = [
+                puntoInicial,
+                { x: limits.maxX, y: puntoInicial.y },
+                { x: limits.maxX, y: limits.maxY },
+                { x: puntoInicial.x, y: limits.maxY },
+                puntoInicial // Cerrar el polígono
+            ];
+
+            console.log('🔍 Región no acotada desde punto único:', {
+                puntoInicial,
+                vertices: areaNoAcotada.length,
+                tipoSolucion: solucion.tipoSolucion
+            });
+
+            return {
+                type: 'line',
+                label: 'Región Factible (No Acotada)',
+                data: areaNoAcotada,
+                backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                borderColor: 'rgba(37, 99, 235, 0.6)',
+                borderWidth: 2,
+                borderDash: [10, 5],
+                pointRadius: 0,
+                pointHoverRadius: 0,
+                fill: {
+                    target: 'origin',
+                    above: 'rgba(37, 99, 235, 0.15)'
+                },
+                showLine: true,
+                tension: 0,
+                order: 3
+            };
+        }
+
+        // Análisis geométrico exhaustivo para 2+ vértices
+        const analisis = analizarGeometriaRegion(regionData);
+
+        console.log('🔍 Análisis geométrico de región:', {
             vertices: regionData.length,
-            esRegionAcotada: esRegionAcotada,
-            puntos: regionData
+            esPoligonoCerrado: analisis.esPoligonoCerrado,
+            esConvexa: analisis.esConvexa,
+            razon: analisis.razon,
+            tipoSolucion: solucion.tipoSolucion
         });
 
-        // ✅ CORRECCIÓN: Solo cerrar el polígono si la región está acotada
-        if (esRegionAcotada && regionData.length >= 3) {
-            // Para región acotada: crear polígono cerrado
-            const polygonData = [...regionData, regionData[0]]; // Cerrar el polígono
+        // Decisión inteligente sobre cómo renderizar
+        if (analisis.esPoligonoCerrado) {
+            // CASO 1: Polígono cerrado - asegurar cierre explícito duplicando primer vértice
+            const polygonData = [...regionData, regionData[0]];
 
             return {
                 type: 'line',
                 label: 'Región Factible',
                 data: polygonData,
-                backgroundColor: 'rgba(37, 99, 235, 0.3)',
+                backgroundColor: 'transparent', // El plugin maneja el relleno
                 borderColor: 'rgba(37, 99, 235, 0.8)',
-                borderWidth: 2,
+                borderWidth: 3,
                 pointRadius: 0,
                 pointHoverRadius: 0,
-                fill: true, // ✅ Usar fill: true para polígonos cerrados
+                fill: false, // Desactivar fill nativo
                 showLine: true,
                 tension: 0,
-                order: 3,
-                segment: {
-                    borderColor: 'rgba(37, 99, 235, 0.8)'
-                }
+                order: 3
             };
         } else {
-            // ✅ CORRECCIÓN: Para región no acotada, NO cerrar el polígono
-            // y usar un sombreado diferente
-            console.log('🔄 Creando región NO acotada');
+            // CASO 2: Región abierta o no acotada
+            // Estrategia: crear un polígono auxiliar hacia el "infinito"
+
+            if (regionData.length === 2) {
+                // Caso especial: solo 2 vértices (línea)
+                return {
+                    type: 'line',
+                    label: 'Región Factible (No Acotada)',
+                    data: regionData,
+                    backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                    borderColor: 'rgba(37, 99, 235, 0.6)',
+                    borderWidth: 2,
+                    borderDash: [10, 5],
+                    pointRadius: 0,
+                    fill: false,
+                    showLine: true,
+                    order: 3
+                };
+            }
+
+            // Crear polígono extendido hasta los límites del gráfico
+            const polygonExtendido = crearPoligonoExtendido(regionData, limits);
 
             return {
                 type: 'line',
                 label: 'Región Factible (No Acotada)',
-                data: regionData,
+                data: polygonExtendido,
                 backgroundColor: 'rgba(37, 99, 235, 0.15)',
                 borderColor: 'rgba(37, 99, 235, 0.6)',
                 borderWidth: 2,
@@ -218,16 +386,55 @@ const ChartManager = (() => {
                 pointHoverRadius: 0,
                 fill: {
                     target: 'origin',
-                    above: 'rgba(37, 99, 235, 0.15)', // Color del área
+                    above: 'rgba(37, 99, 235, 0.15)'
                 },
                 showLine: true,
                 tension: 0,
-                order: 3,
-                segment: {
-                    borderColor: 'rgba(37, 99, 235, 0.6)'
-                }
+                order: 3
             };
         }
+    };
+
+    /**
+     * Extiende un polígono abierto hasta los límites del gráfico
+     */
+    const crearPoligonoExtendido = (vertices, limits) => {
+        // Encontrar los vértices más extremos
+        const verticeInferiorIzq = { x: limits.minX, y: limits.minY };
+        const verticeInferiorDer = { x: limits.maxX, y: limits.minY };
+        const verticeSuperiorDer = { x: limits.maxX, y: limits.maxY };
+        const verticeSuperiorIzq = { x: limits.minX, y: limits.maxY };
+
+        // Identificar qué bordes del gráfico están "abiertos"
+        const xMin = Math.min(...vertices.map(v => v.x));
+        const xMax = Math.max(...vertices.map(v => v.x));
+        const yMin = Math.min(...vertices.map(v => v.y));
+        const yMax = Math.max(...vertices.map(v => v.y));
+
+        const margen = 0.1;
+        const tocaBordeIzq = (xMin - limits.minX) < margen;
+        const tocaBordeDer = (limits.maxX - xMax) < margen;
+        const tocaBordeInf = (yMin - limits.minY) < margen;
+        const tocaBordeSup = (limits.maxY - yMax) < margen;
+
+        // Construir polígono extendido
+        const poligonoExtendido = [...vertices];
+
+        // Conectar al borde correspondiente
+        if (tocaBordeDer && tocaBordeInf) {
+            poligonoExtendido.push(verticeInferiorDer);
+        }
+        if (tocaBordeInf && tocaBordeIzq) {
+            poligonoExtendido.push(verticeInferiorIzq);
+        }
+        if (tocaBordeIzq && tocaBordeSup) {
+            poligonoExtendido.push(verticeSuperiorIzq);
+        }
+        if (tocaBordeSup && tocaBordeDer) {
+            poligonoExtendido.push(verticeSuperiorDer);
+        }
+
+        return poligonoExtendido;
     };
 
     /**
@@ -340,6 +547,83 @@ const ChartManager = (() => {
         }
 
         return { minX, maxX, minY, maxY };
+    };
+
+    /**
+     * Plugin personalizado para dibujar la región factible sombreada con animación suave
+     */
+    const regionFactiblePlugin = {
+        id: 'regionFactiblePlugin',
+
+        beforeDatasetsDraw: (chart) => {
+            const { ctx, scales } = chart;
+
+            // Buscar el índice del dataset de región factible (cerrada o no acotada)
+            let regionDatasetIndex = chart.data.datasets.findIndex(ds => ds.label === 'Región Factible');
+
+            // Si no hay región cerrada, buscar región no acotada
+            if (regionDatasetIndex === -1) {
+                regionDatasetIndex = chart.data.datasets.findIndex(ds => ds.label === 'Región Factible (No Acotada)');
+            }
+
+            if (regionDatasetIndex === -1) {
+                regionOpacity = 0; // Resetear opacidad
+                return; // No hay dataset de región factible
+            }
+
+            const regionDataset = chart.data.datasets[regionDatasetIndex];
+            const meta = chart.getDatasetMeta(regionDatasetIndex);
+
+            if (!regionDataset.data || regionDataset.data.length < 3) {
+                regionOpacity = 0; // Resetear opacidad
+                return; // No hay suficientes puntos para formar un polígono
+            }
+
+            // ✅ DETERMINAR OPACIDAD OBJETIVO
+            const targetOpacity = (meta && meta.hidden) ? 0 : 1;
+
+            // ✅ ANIMAR SUAVEMENTE LA OPACIDAD
+            const opacitySpeed = 0.15; // Velocidad de transición (más alto = más rápido)
+
+            if (Math.abs(regionOpacity - targetOpacity) > 0.01) {
+                // Interpolar hacia la opacidad objetivo
+                regionOpacity += (targetOpacity - regionOpacity) * opacitySpeed;
+
+                // Forzar actualización continua durante la animación
+                setTimeout(() => chart.update('none'), 16); // ~60fps
+            } else {
+                regionOpacity = targetOpacity;
+            }
+
+            // No dibujar si la opacidad es muy baja
+            if (regionOpacity < 0.01) {
+                return;
+            }
+
+            ctx.save();
+            ctx.beginPath();
+
+            // Dibujar el polígono
+            regionDataset.data.forEach((point, index) => {
+                const x = scales.x.getPixelForValue(point.x);
+                const y = scales.y.getPixelForValue(point.y);
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            ctx.closePath();
+
+            // Rellenar con color semitransparente y opacidad animada suavemente
+            const fillOpacity = 0.25 * regionOpacity;
+            ctx.fillStyle = `rgba(37, 99, 235, ${fillOpacity})`;
+            ctx.fill();
+
+            ctx.restore();
+        }
     };
 
     /**
