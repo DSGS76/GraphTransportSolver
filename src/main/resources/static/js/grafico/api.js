@@ -82,39 +82,9 @@ const ApiService = (() => {
         }
     };
 
-    /**
-     * Verifica la salud del servicio
-     * @returns {Promise<Object>} - Estado del servicio
-     */
-    const checkHealth = async () => {
-        try {
-            const response = await fetch(`${BASE_URL}/health`);
-            const data = await response.json();
-            console.log('💚 Health check:', data);
-            return data;
-        } catch (error) {
-            console.error('❌ Health check falló:', error);
-            return { success: false, message: 'Servicio no disponible' };
-        }
-    };
-
-    /**
-     * Obtiene la configuración actual de la API
-     * @returns {Object} - Configuración de la API
-     */
-    const getConfig = () => ({
-        baseUrl: BASE_URL,
-        endpoints: {
-            resolver: `${BASE_URL}/resolver`,
-            health: `${BASE_URL}/health`
-        }
-    });
-
     // API Pública
     return {
-        resolverProblema,
-        checkHealth,
-        getConfig
+        resolverProblema
     };
 })();
 

@@ -3,11 +3,11 @@
  * Coordina todos los módulos y maneja el flujo principal
  *
  * @author Duvan Gil
- * @version 2.0
+ * @version 2.1 - Agregado: botón de exportar imagen
  */
 const MainApp = (() => {
 
-    // Mensajes según tipo de solución (responsabilidad del frontend)
+    // Mensajes según tipo de solución
     const MENSAJES_SOLUCION = {
         UNICA: (z, x1, x2) => ({
             titulo: '✅ Solución Óptima Única',
@@ -62,6 +62,11 @@ const MainApp = (() => {
     const setupEventListeners = () => {
         document.getElementById('btnResolver').addEventListener('click', resolverProblema);
 
+        // ✅ NUEVO: Event listener para botón de exportar
+        document.getElementById('btnExportarGrafica').addEventListener('click', () => {
+            ChartManager.exportarImagen('grafica-metodo-grafico.png');
+        });
+
         // Detectar Enter en inputs numéricos
         document.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && e.target.type === 'number') {
@@ -76,9 +81,9 @@ const MainApp = (() => {
      */
     const resolverProblema = async () => {
         try {
-            console.log('═══════════════════════════════════════');
+            console.log('╔═══════════════════════════════════════╗');
             console.log('🚀 INICIANDO RESOLUCIÓN DE PROBLEMA');
-            console.log('═══════════════════════════════════════');
+            console.log('╚═══════════════════════════════════════╝');
 
             // 1. Obtener datos del formulario
             const problemaDTO = FormManager.obtenerDatos();
@@ -104,22 +109,21 @@ const MainApp = (() => {
                 throw new Error(apiResponse.message || 'Error al resolver el problema');
             }
 
-            console.log('═══════════════════════════════════════');
+            console.log('╔═══════════════════════════════════════╗');
             console.log('✅ RESOLUCIÓN COMPLETADA');
-            console.log('═══════════════════════════════════════');
+            console.log('╚═══════════════════════════════════════╝');
 
         } catch (error) {
             showLoading(false);
-            console.error('═══════════════════════════════════════');
+            console.error('╔═══════════════════════════════════════╗');
             console.error('❌ ERROR EN RESOLUCIÓN');
-            console.error('═══════════════════════════════════════');
+            console.error('╚═══════════════════════════════════════╝');
             console.error('Error:', error);
             console.error('Mensaje:', error.message);
             console.error('Stack:', error.stack);
 
             FormManager.showToast(error.message || 'Error al resolver el problema', 'error');
 
-            // Mostrar error detallado en consola para debugging
             console.error('Detalles del error:', {
                 mensaje: error.message,
                 tipo: error.name,
@@ -136,6 +140,12 @@ const MainApp = (() => {
 
         const section = document.getElementById('resultadosSection');
         section.style.display = 'block';
+
+        // ✅ Mostrar botón de exportar cuando hay gráfica
+        const btnExportar = document.getElementById('btnExportarGrafica');
+        if (btnExportar) {
+            btnExportar.style.display = 'inline-flex';
+        }
 
         // Scroll suave a resultados
         setTimeout(() => {

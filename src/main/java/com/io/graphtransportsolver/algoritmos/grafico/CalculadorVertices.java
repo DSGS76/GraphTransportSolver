@@ -81,26 +81,14 @@ public class CalculadorVertices {
 
     /**
      * Filtra los puntos que pertenecen a la región factible.
+     * Usa el método esFactible() del modelo ProblemaGrafico.
      */
     private List<Punto> filtrarFactibles(List<Punto> puntos, ProblemaGrafico problema) {
         return puntos.stream()
                 .filter(punto -> {
-                    // Verificar no negatividad
-                    if (problema.isRestriccionesNoNegatividad()) {
-                        if (punto.getX1() < -EPSILON || punto.getX2() < -EPSILON) {
-                            return false;
-                        }
-                    }
-
-                    // Verificar todas las restricciones
-                    for (Restriccion restriccion : problema.getRestricciones()) {
-                        if (!restriccion.esSatisfecha(punto.getX1(), punto.getX2())) {
-                            return false;
-                        }
-                    }
-
-                    punto.setEsFactible(true);
-                    return true;
+                    boolean factible = problema.esFactible(punto);
+                    punto.setEsFactible(factible);
+                    return factible;
                 })
                 .collect(Collectors.toList());
     }
@@ -124,7 +112,7 @@ public class CalculadorVertices {
         // Para maximización
         if (fo.getTipo() == TipoOptimizacion.MAXIMIZAR) {
             // Si no hay restricciones ≤ (o muy pocas) y los coeficientes son positivos
-            if (!tieneMenorIgual || problema.getRestricciones().size() < 2) {
+            if (!tieneMenorIgual || problema.getNumeroRestricciones() < 2) {
                 if (fo.getCoeficienteX1() > 0 || fo.getCoeficienteX2() > 0) {
                     return true;
                 }
@@ -136,7 +124,7 @@ public class CalculadorVertices {
             boolean tieneMayorIgual = problema.getRestricciones().stream()
                     .anyMatch(r -> r.getTipo() == com.io.graphtransportsolver.models.grafico.enums.TipoDesigualdad.MAYOR_IGUAL);
 
-            if (!tieneMayorIgual || problema.getRestricciones().size() < 2) {
+            if (!tieneMayorIgual || problema.getNumeroRestricciones() < 2) {
                 if (fo.getCoeficienteX1() < 0 || fo.getCoeficienteX2() < 0) {
                     return true;
                 }

@@ -36,17 +36,6 @@ public class ProblemaGrafico {
     private boolean restriccionesNoNegatividad = true;
 
     /**
-     * Agrega una restricción al problema.
-     *
-     * @param restriccion restricción a agregar
-     */
-    public void agregarRestriccion(Restriccion restriccion) {
-        if (restriccion != null && restriccion.esValida()) {
-            restricciones.add(restriccion);
-        }
-    }
-
-    /**
      * Verifica si un punto es factible (satisface todas las restricciones).
      *
      * @param punto punto a verificar
@@ -79,8 +68,8 @@ public class ProblemaGrafico {
             return false;
         }
 
-        // Verificar que haya al menos una restricción
-        if (restricciones.isEmpty()) {
+        // Verificar que haya al menos dos restricciones
+        if (getNumeroRestricciones() < 2) {
             return false;
         }
 

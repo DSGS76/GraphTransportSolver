@@ -1277,3 +1277,162 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+/* ===== ESTILOS ADICIONALES PARA SECCIÓN DE GRÁFICA ===== */
+
+/* Chart Section */
+.chart-section {
+    margin-bottom: 2rem;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.chart-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Estilo mejorado para btn-sm en contexto de chart */
+.chart-header .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    min-width: auto;
+}
+
+/* Ajustar chart container para mejor visualización */
+.chart-container {
+    position: relative;
+    height: 500px;
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive para chart header */
+@media (max-width: 768px) {
+    .chart-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .chart-title {
+        font-size: 1.2rem;
+        text-align: center;
+    }
+
+    .chart-header .btn-sm {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .chart-container {
+        height: 350px;
+    }
+}
+
+/* Animación para el botón de exportar */
+#btnExportarGrafica {
+    animation: fadeInRight 0.5s ease-out;
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Mejorar visualización de vertices table */
+.vertices-table-container {
+    margin-top: 2rem;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.section-subtitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.subtitle-icon {
+    font-size: 1.8rem;
+}
+
+.vertex-count {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-left: 0.5rem;
+}
+
+/* Hover effect para el botón de exportar */
+#btnExportarGrafica:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+}
+
+/* Solución note para información adicional */
+.solution-note {
+    background: #eff6ff;
+    border: 2px solid #3b82f6;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.note-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.solution-note p {
+    margin: 0;
+    color: #1e40af;
+    line-height: 1.6;
+}
+
+.solution-note strong {
+    font-weight: 700;
+}
+
+/* Estilos para description en solution-header */
+.solution-description {
+    font-size: 1.1rem;
+    color: #475569;
+    line-height: 1.6;
+    margin: 1rem 0 0 0;
+    text-align: center;
+}
+
+/* Mejora visual para no-vertices message */
+.no-vertices {
+    text-align: center;
+    padding: 2rem;
+    color: #64748b;
+    font-size: 1.1rem;
+    font-style: italic;
+}

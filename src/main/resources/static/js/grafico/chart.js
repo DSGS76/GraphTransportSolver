@@ -3,7 +3,7 @@
  * Maneja la visualización profesional de la región factible y el punto óptimo
  *
  * @author Duvan Gil
- * @version 2.0
+ * @version 2.2 - Correcciones: región sombreada, no acotada, función objetivo
  */
 const ChartManager = (() => {
     let chartInstance = null;
@@ -35,7 +35,7 @@ const ChartManager = (() => {
 
         // Configuración de la gráfica
         const config = {
-            type: 'line',  // Cambiado a 'line' para que fill funcione correctamente
+            type: 'scatter',
             data: { datasets },
             options: crearOpciones(solucion, limits)
         };
@@ -58,17 +58,15 @@ const ChartManager = (() => {
         const limits = calcularLimites(solucion);
 
         console.log('📊 Preparando datasets...');
-        console.log('Límites calculados:', limits);
-        console.log('Restricciones recibidas:', solucion.restricciones);
+        console.log('Tipo de solución:', solucion.tipoSolucion);
+        console.log('Vértices región factible:', solucion.regionFactible);
 
         // 0. Líneas de restricciones (primero, para que queden atrás)
         if (solucion.restricciones && solucion.restricciones.length > 0) {
             console.log(`✅ Procesando ${solucion.restricciones.length} restricciones...`);
             solucion.restricciones.forEach((restriccion, index) => {
                 const puntos = calcularPuntosRestriccion(restriccion, limits);
-                console.log(`Restricción ${index + 1}:`, restriccion, '→ Puntos:', puntos);
                 if (puntos && puntos.length > 0) {
-                    // Generar color usando HSL para distribución uniforme en el espectro
                     const hue = (index * 360 / Math.max(solucion.restricciones.length, 6)) % 360;
                     const color = `hsla(${hue}, 70%, 55%, 0.85)`;
                     const label = formatearRestriccion(restriccion, index + 1);
@@ -76,58 +74,65 @@ const ChartManager = (() => {
                     datasets.push({
                         label: label,
                         data: puntos,
-                        type: 'line',  // Tipo línea explícito
+                        type: 'line',
                         borderColor: color,
                         backgroundColor: 'transparent',
                         borderWidth: 2,
-                        borderDash: [5, 5],  // Línea punteada
+                        borderDash: [5, 5],
                         pointRadius: 0,
                         showLine: true,
                         fill: false,
-                        order: 10  // Orden alto para que esté atrás
+                        order: 10
                     });
-                    console.log(`✅ Restricción ${index + 1} agregada:`, label);
-                } else {
-                    console.warn(`⚠️ Restricción ${index + 1} no generó puntos válidos`);
                 }
             });
-        } else {
-            console.warn('⚠️ No hay restricciones para graficar');
         }
 
-        // 1. Región factible (polígono) - Ya viene ordenada del backend
+        // ✅ CORRECCIÓN CRÍTICA: Manejo mejorado de la región factible
         if (solucion.regionFactible && solucion.regionFactible.length > 0) {
-            const regionData = solucion.regionFactible.map(p => ({ x: p.x1, y: p.x2 }));
-
-            // Cerrar el polígono
-            if (regionData.length > 0) {
-                regionData.push(regionData[0]);
+            const regionDataset = crearDatasetRegionFactible(solucion, limits);
+            if (regionDataset) {
+                datasets.push(regionDataset);
             }
-
-            datasets.push({
-                type: 'line',  // Tipo line explícito para soportar fill
-                label: 'Región Factible',
-                data: regionData,
-                backgroundColor: 'rgba(37, 99, 235, 0.35)',  // Azul con 35% opacidad
-                borderColor: 'rgba(37, 99, 235, 1)',         // Azul sólido
-                borderWidth: 3,
-                pointRadius: 0,
-                pointHoverRadius: 0,
-                fill: true,  // Activar relleno
-                showLine: true,
-                tension: 0,
-                order: 3
-            });
         }
 
-        // 2. Vértices (todos los puntos)
+        // Función objetivo pasando por el punto óptimo
+        if (solucion.puntoOptimo && (solucion.tipoSolucion === 'UNICA' || solucion.tipoSolucion === 'MULTIPLE')) {
+            const funcionObjetivoData = calcularLineaFuncionObjetivo(
+                solucion.puntoOptimo,
+                limits
+            );
+
+            if (funcionObjetivoData.length > 0) {
+                const coefX1 = parseFloat(document.getElementById('coefZ_x1')?.value || 0);
+                const coefX2 = parseFloat(document.getElementById('coefZ_x2')?.value || 0);
+                const valorZ = solucion.puntoOptimo.valorZ;
+                const labelFO = formatearFuncionObjetivo(coefX1, coefX2, valorZ);
+
+                datasets.push({
+                    type: 'line',
+                    label: labelFO,
+                    data: funcionObjetivoData,
+                    borderColor: 'rgba(139, 0, 139, 0.9)',
+                    backgroundColor: 'transparent',
+                    borderWidth: 4,
+                    borderDash: [15, 8],
+                    pointRadius: 0,
+                    showLine: true,
+                    fill: false,
+                    order: 5
+                });
+            }
+        }
+
+        // Vértices (todos los puntos)
         if (solucion.vertices && solucion.vertices.length > 0) {
             datasets.push({
-                type: 'scatter',  // Tipo scatter para mostrar solo puntos
+                type: 'scatter',
                 label: 'Vértices',
                 data: solucion.vertices.map(p => ({ x: p.x1, y: p.x2 })),
-                backgroundColor: 'rgba(100, 116, 139, 0.8)',  // Gris azulado
-                borderColor: 'rgba(71, 85, 105, 1)',          // Gris oscuro
+                backgroundColor: 'rgba(100, 116, 139, 0.8)',
+                borderColor: 'rgba(71, 85, 105, 1)',
                 borderWidth: 2,
                 pointRadius: 8,
                 pointHoverRadius: 10,
@@ -137,14 +142,14 @@ const ChartManager = (() => {
             });
         }
 
-        // 3. Punto óptimo (destacado)
+        // Punto óptimo (destacado)
         if (solucion.puntoOptimo) {
             datasets.push({
-                type: 'scatter',  // Tipo scatter para mostrar solo el punto
+                type: 'scatter',
                 label: '⭐ Punto Óptimo',
                 data: [{ x: solucion.puntoOptimo.x1, y: solucion.puntoOptimo.x2 }],
-                backgroundColor: 'rgb(50,220,38)',      // Verde brillante
-                borderColor: 'rgb(38,185,28)',          // Verde oscuro
+                backgroundColor: 'rgb(50,220,38)',
+                borderColor: 'rgb(38,185,28)',
                 borderWidth: 4,
                 pointRadius: 14,
                 pointHoverRadius: 16,
@@ -155,8 +160,186 @@ const ChartManager = (() => {
         }
 
         console.log(`📊 Total datasets preparados: ${datasets.length}`);
-        console.log('Datasets:', datasets);
         return datasets;
+    };
+
+    /**
+     * ✅ NUEVA FUNCIÓN MEJORADA: Crea el dataset de la región factible
+     * Maneja correctamente regiones acotadas y no acotadas
+     */
+    const crearDatasetRegionFactible = (solucion, limits) => {
+        const regionData = solucion.regionFactible.map(p => ({ x: p.x1, y: p.x2 }));
+
+        // ✅ DETECCIÓN MEJORADA: Usar el tipo de solución del backend
+        const esRegionAcotada = solucion.tipoSolucion !== 'NO_ACOTADO';
+
+        console.log('🔍 Análisis región factible:', {
+            tipoSolucion: solucion.tipoSolucion,
+            vertices: regionData.length,
+            esRegionAcotada: esRegionAcotada,
+            puntos: regionData
+        });
+
+        // ✅ CORRECCIÓN: Solo cerrar el polígono si la región está acotada
+        if (esRegionAcotada && regionData.length >= 3) {
+            // Para región acotada: crear polígono cerrado
+            const polygonData = [...regionData, regionData[0]]; // Cerrar el polígono
+
+            return {
+                type: 'line',
+                label: 'Región Factible',
+                data: polygonData,
+                backgroundColor: 'rgba(37, 99, 235, 0.3)',
+                borderColor: 'rgba(37, 99, 235, 0.8)',
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 0,
+                fill: true, // ✅ Usar fill: true para polígonos cerrados
+                showLine: true,
+                tension: 0,
+                order: 3,
+                segment: {
+                    borderColor: 'rgba(37, 99, 235, 0.8)'
+                }
+            };
+        } else {
+            // ✅ CORRECCIÓN: Para región no acotada, NO cerrar el polígono
+            // y usar un sombreado diferente
+            console.log('🔄 Creando región NO acotada');
+
+            return {
+                type: 'line',
+                label: 'Región Factible (No Acotada)',
+                data: regionData,
+                backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                borderColor: 'rgba(37, 99, 235, 0.6)',
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 0,
+                fill: {
+                    target: 'origin',
+                    above: 'rgba(37, 99, 235, 0.15)', // Color del área
+                },
+                showLine: true,
+                tension: 0,
+                order: 3,
+                segment: {
+                    borderColor: 'rgba(37, 99, 235, 0.6)'
+                }
+            };
+        }
+    };
+
+    /**
+     * Calcula la línea de la función objetivo que pasa por el punto óptimo
+     */
+    const calcularLineaFuncionObjetivo = (puntoOptimo, limits) => {
+        const coefX1 = parseFloat(document.getElementById('coefZ_x1')?.value || 0);
+        const coefX2 = parseFloat(document.getElementById('coefZ_x2')?.value || 0);
+        const valorZ = puntoOptimo.valorZ;
+
+        if (Math.abs(coefX1) < 1e-10 && Math.abs(coefX2) < 1e-10) {
+            return [];
+        }
+
+        // Caso 1: Línea vertical (coefX2 ≈ 0)
+        if (Math.abs(coefX2) < 1e-10) {
+            const x = valorZ / coefX1;
+            return [
+                { x: x, y: limits.minY },
+                { x: x, y: limits.maxY }
+            ];
+        }
+
+        // Caso 2: Línea horizontal (coefX1 ≈ 0)
+        if (Math.abs(coefX1) < 1e-10) {
+            const y = valorZ / coefX2;
+            return [
+                { x: limits.minX, y: y },
+                { x: limits.maxX, y: y }
+            ];
+        }
+
+        // Caso 3: Línea general
+        const y1 = (valorZ - coefX1 * limits.minX) / coefX2;
+        const y2 = (valorZ - coefX1 * limits.maxX) / coefX2;
+
+        return [
+            { x: limits.minX, y: y1 },
+            { x: limits.maxX, y: y2 }
+        ];
+    };
+
+    /**
+     * Formatea la función objetivo para mostrar en la leyenda
+     */
+    const formatearFuncionObjetivo = (coefX1, coefX2, valorZ) => {
+        let ecuacion = 'Z = ';
+
+        if (Math.abs(coefX1) > 1e-10) {
+            if (Math.abs(coefX1) === 1) {
+                ecuacion += coefX1 > 0 ? 'x₁' : '-x₁';
+            } else {
+                ecuacion += `${coefX1}x₁`;
+            }
+        }
+
+        if (Math.abs(coefX2) > 1e-10) {
+            if (ecuacion !== 'Z = ') {
+                ecuacion += coefX2 > 0 ? ' + ' : ' - ';
+                ecuacion += Math.abs(coefX2) === 1 ? 'x₂' : `${Math.abs(coefX2)}x₂`;
+            } else {
+                ecuacion += Math.abs(coefX2) === 1 ?
+                    (coefX2 > 0 ? 'x₂' : '-x₂') :
+                    `${coefX2}x₂`;
+            }
+        }
+
+        ecuacion += ` = ${valorZ.toFixed(2)}`;
+        return ecuacion;
+    };
+
+    /**
+     * Calcula los límites inteligentes del gráfico
+     */
+    const calcularLimites = (solucion) => {
+        let minX = 0, maxX = 10, minY = 0, maxY = 10;
+
+        const allPoints = [
+            ...(solucion.regionFactible || []),
+            ...(solucion.vertices || [])
+        ];
+
+        if (solucion.puntoOptimo) {
+            allPoints.push(solucion.puntoOptimo);
+        }
+
+        if (allPoints.length > 0) {
+            const xValues = allPoints.map(p => p.x1).filter(v => !isNaN(v));
+            const yValues = allPoints.map(p => p.x2).filter(v => !isNaN(v));
+
+            if (xValues.length > 0 && yValues.length > 0) {
+                minX = Math.min(...xValues, 0);
+                maxX = Math.max(...xValues, 1);
+                minY = Math.min(...yValues, 0);
+                maxY = Math.max(...yValues, 1);
+
+                const marginX = Math.max((maxX - minX) * 0.15, 1);
+                const marginY = Math.max((maxY - minY) * 0.15, 1);
+
+                minX = Math.max(0, minX - marginX);
+                maxX = maxX + marginX;
+                minY = Math.max(0, minY - marginY);
+                maxY = maxY + marginY;
+
+                minX = Math.floor(minX);
+                maxX = Math.ceil(maxX);
+                minY = Math.floor(minY);
+                maxY = Math.ceil(maxY);
+            }
+        }
+
+        return { minX, maxX, minY, maxY };
     };
 
     /**
@@ -198,7 +381,6 @@ const ChartManager = (() => {
                     color: '#34495e',
                     generateLabels: (chart) => {
                         const original = Chart.defaults.plugins.legend.labels.generateLabels(chart);
-                        // Ordenar: Región -> Vértices -> Óptimo
                         return original.sort((a, b) => b.datasetIndex - a.datasetIndex);
                     }
                 }
@@ -229,7 +411,6 @@ const ChartManager = (() => {
 
                         labels.push(`Coordenadas: (${punto.x.toFixed(4)}, ${punto.y.toFixed(4)})`);
 
-                        // Buscar valor Z si es un vértice
                         const vertice = solucion.vertices?.find(v =>
                             Math.abs(v.x1 - punto.x) < 0.0001 &&
                             Math.abs(v.x2 - punto.y) < 0.0001
@@ -238,7 +419,6 @@ const ChartManager = (() => {
                         if (vertice) {
                             labels.push(`Valor Z: ${vertice.valorZ.toFixed(4)}`);
 
-                            // Indicar si es óptimo
                             if (solucion.puntoOptimo &&
                                 Math.abs(vertice.x1 - solucion.puntoOptimo.x1) < 0.0001 &&
                                 Math.abs(vertice.x2 - solucion.puntoOptimo.x2) < 0.0001) {
@@ -335,50 +515,80 @@ const ChartManager = (() => {
     };
 
     /**
-     * Calcula los límites inteligentes del gráfico
+     * Calcula dos puntos para dibujar la línea de una restricción
      */
-    const calcularLimites = (solucion) => {
-        let minX = 0, maxX = 10, minY = 0, maxY = 10;
+    const calcularPuntosRestriccion = (restriccion, limits) => {
+        const { coeficienteX1, coeficienteX2, ladoDerecho } = restriccion;
 
-        const allPoints = [
-            ...(solucion.regionFactible || []),
-            ...(solucion.vertices || [])
-        ];
-
-        if (solucion.puntoOptimo) {
-            allPoints.push(solucion.puntoOptimo);
+        if (Math.abs(coeficienteX1) < 1e-10 && Math.abs(coeficienteX2) < 1e-10) {
+            return [];
         }
 
-        if (allPoints.length > 0) {
-            const xValues = allPoints.map(p => p.x1).filter(v => !isNaN(v));
-            const yValues = allPoints.map(p => p.x2).filter(v => !isNaN(v));
+        if (Math.abs(coeficienteX2) < 1e-10) {
+            const x = ladoDerecho / coeficienteX1;
+            return [
+                { x: x, y: limits.minY },
+                { x: x, y: limits.maxY }
+            ];
+        }
 
-            if (xValues.length > 0 && yValues.length > 0) {
-                minX = Math.min(...xValues, 0);
-                maxX = Math.max(...xValues, 1);
-                minY = Math.min(...yValues, 0);
-                maxY = Math.max(...yValues, 1);
+        if (Math.abs(coeficienteX1) < 1e-10) {
+            const y = ladoDerecho / coeficienteX2;
+            return [
+                { x: limits.minX, y: y },
+                { x: limits.maxX, y: y }
+            ];
+        }
 
-                // Añadir margen inteligente del 15%
-                const marginX = Math.max((maxX - minX) * 0.15, 1);
-                const marginY = Math.max((maxY - minY) * 0.15, 1);
+        const y1 = (ladoDerecho - coeficienteX1 * limits.minX) / coeficienteX2;
+        const y2 = (ladoDerecho - coeficienteX1 * limits.maxX) / coeficienteX2;
 
-                minX = Math.max(0, minX - marginX);
-                maxX = maxX + marginX;
-                minY = Math.max(0, minY - marginY);
-                maxY = maxY + marginY;
+        return [
+            { x: limits.minX, y: y1 },
+            { x: limits.maxX, y: y2 }
+        ];
+    };
 
-                // Redondear a números "bonitos"
-                minX = Math.floor(minX);
-                maxX = Math.ceil(maxX);
-                minY = Math.floor(minY);
-                maxY = Math.ceil(maxY);
+    /**
+     * Formatea la restricción para mostrar en la leyenda
+     */
+    const formatearRestriccion = (restriccion, numero) => {
+        const { coeficienteX1, coeficienteX2, ladoDerecho, tipo } = restriccion;
+
+        let simbolo = '=';
+        if (tipo === 'MENOR_IGUAL') simbolo = '≤';
+        if (tipo === 'MAYOR_IGUAL') simbolo = '≥';
+        if (tipo === 'IGUAL') simbolo = '=';
+
+        let termino1 = '';
+        if (Math.abs(coeficienteX1) > 1e-10) {
+            if (coeficienteX1 === 1) {
+                termino1 = 'x₁';
+            } else if (coeficienteX1 === -1) {
+                termino1 = '-x₁';
+            } else {
+                termino1 = `${coeficienteX1}x₁`;
             }
         }
 
-        console.log('📏 Límites calculados:', { minX, maxX, minY, maxY });
+        let termino2 = '';
+        if (Math.abs(coeficienteX2) > 1e-10) {
+            if (termino1) {
+                // Si ya hay un primer término, agregar el signo
+                termino2 = coeficienteX2 > 0 ? ' + ' : ' - ';
+            } else {
+                // Si es el primer término, mostrar el signo negativo si aplica
+                termino2 = coeficienteX2 < 0 ? '-' : '';
+            }
 
-        return { minX, maxX, minY, maxY };
+            if (Math.abs(coeficienteX2) === 1) {
+                termino2 += 'x₂';
+            } else {
+                termino2 += `${Math.abs(coeficienteX2)}x₂`;
+            }
+        }
+
+        return `R${numero}: ${termino1}${termino2} ${simbolo} ${ladoDerecho}`;
     };
 
     /**
@@ -398,88 +608,23 @@ const ChartManager = (() => {
     const exportarImagen = (filename = 'grafica-metodo-grafico.png') => {
         if (!chartInstance) {
             console.warn('No hay gráfica para exportar');
+            FormManager.showToast('No hay gráfica para exportar', 'warning');
             return;
         }
 
-        const url = chartInstance.toBase64Image();
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = url;
-        link.click();
+        try {
+            const url = chartInstance.toBase64Image();
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = url;
+            link.click();
 
-        console.log('💾 Gráfica exportada:', filename);
-    };
-
-
-    /**
-     * Calcula dos puntos para dibujar la línea de una restricción
-     * Usa la ecuación: coef1*x1 + coef2*x2 = ladoDerecho
-     */
-    const calcularPuntosRestriccion = (restriccion, limits) => {
-        const { coeficienteX1, coeficienteX2, ladoDerecho } = restriccion;
-
-        // Casos especiales
-        if (Math.abs(coeficienteX1) < 1e-10 && Math.abs(coeficienteX2) < 1e-10) {
-            return []; // Restricción inválida
+            console.log('💾 Gráfica exportada:', filename);
+            FormManager.showToast('✅ Gráfica exportada exitosamente', 'success');
+        } catch (error) {
+            console.error('❌ Error al exportar:', error);
+            FormManager.showToast('Error al exportar la gráfica', 'error');
         }
-
-        // Caso: x1 = constante (línea vertical)
-        if (Math.abs(coeficienteX2) < 1e-10) {
-            const x = ladoDerecho / coeficienteX1;
-            return [
-                { x: x, y: limits.minY },
-                { x: x, y: limits.maxY }
-            ];
-        }
-
-        // Caso: x2 = constante (línea horizontal)
-        if (Math.abs(coeficienteX1) < 1e-10) {
-            const y = ladoDerecho / coeficienteX2;
-            return [
-                { x: limits.minX, y: y },
-                { x: limits.maxX, y: y }
-            ];
-        }
-
-        // Caso general: calcular y para x = minX y x = maxX
-        // coef1*x + coef2*y = ladoDerecho
-        // y = (ladoDerecho - coef1*x) / coef2
-        const y1 = (ladoDerecho - coeficienteX1 * limits.minX) / coeficienteX2;
-        const y2 = (ladoDerecho - coeficienteX1 * limits.maxX) / coeficienteX2;
-
-        return [
-            { x: limits.minX, y: y1 },
-            { x: limits.maxX, y: y2 }
-        ];
-    };
-
-    /**
-     * Formatea la restricción para mostrar en la leyenda
-     */
-    const formatearRestriccion = (restriccion, numero) => {
-        const { coeficienteX1, coeficienteX2, ladoDerecho, tipo } = restriccion;
-
-        // Símbolo de desigualdad
-        let simbolo = '=';
-        if (tipo === 'MENOR_IGUAL') simbolo = '≤';
-        if (tipo === 'MAYOR_IGUAL') simbolo = '≥';
-        if (tipo === 'IGUAL') simbolo = '=';
-
-        // Formatear coeficientes
-        let termino1 = '';
-        if (Math.abs(coeficienteX1) > 1e-10) {
-            termino1 = Math.abs(coeficienteX1) === 1 ? 'x₁' : `${Math.abs(coeficienteX1)}x₁`;
-        }
-
-        let termino2 = '';
-        if (Math.abs(coeficienteX2) > 1e-10) {
-            const signo = coeficienteX2 > 0 ? ' + ' : ' - ';
-            termino2 = Math.abs(coeficienteX2) === 1 ?
-                `${termino1 ? signo : ''}x₂` :
-                `${termino1 ? signo : ''}${Math.abs(coeficienteX2)}x₂`;
-        }
-
-        return `R${numero}: ${termino1}${termino2} ${simbolo} ${ladoDerecho}`;
     };
 
     // API Pública

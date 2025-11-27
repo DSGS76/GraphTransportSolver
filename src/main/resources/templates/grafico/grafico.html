@@ -53,12 +53,13 @@
 
                                     <div class="equation-display">
                                         <span class="equation-label">Z =</span>
+                                        <label for="coefZ_x1"></label>
                                         <input type="number" id="coefZ_x1" class="equation-input" value="3" step="any"
-                                               placeholder="0">
+                                                                             placeholder="0">
                                         <span class="equation-var">x₁</span>
                                         <span class="equation-operator">+</span>
-                                        <input type="number" id="coefZ_x2" class="equation-input" value="5" step="any"
-                                               placeholder="0">
+                                        <label for="coefZ_x2"></label><input type="number" id="coefZ_x2" class="equation-input" value="5" step="any"
+                                                                             placeholder="0">
                                         <span class="equation-var">x₂</span>
                                     </div>
                                 </div>
@@ -106,32 +107,41 @@
                 </div>
             </section>
 
-                <!-- ===== RESULTADOS ===== -->
-                <section id="resultadosSection" class="card card-results" style="display: none;">
-                    <div class="card-header">
-                        <div class="card-header-content">
-                            <span class="card-icon">📊</span>
-                            <h2 class="card-title">Resultados</h2>
-                        </div>
+            <!-- ===== RESULTADOS ===== -->
+            <section id="resultadosSection" class="card card-results" style="display: none;">
+                <div class="card-header">
+                    <div class="card-header-content">
+                        <span class="card-icon">📊</span>
+                        <h2 class="card-title">Resultados</h2>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Información de la Solución -->
+                    <div id="solucionInfo" class="solution-info">
+                        <!-- Se llenará dinámicamente -->
                     </div>
 
-                    <div class="card-body">
-                        <!-- Información de la Solución -->
-                        <div id="solucionInfo" class="solution-info">
-                            <!-- Se llenará dinámicamente -->
+                    <!-- Gráfica con botón de exportar -->
+                    <div class="chart-section">
+                        <div class="chart-header">
+                            <h3 class="chart-title">📈 Visualización Gráfica</h3>
+                            <button id="btnExportarGrafica" class="btn btn-secondary btn-sm" style="display: none;">
+                                <span class="btn-icon">💾</span>
+                                <span class="btn-text">Exportar Imagen</span>
+                            </button>
                         </div>
-
-                        <!-- Gráfica -->
                         <div class="chart-container">
                             <canvas id="graficoChart"></canvas>
                         </div>
-
-                        <!-- Tabla de Vértices -->
-                        <div id="verticesTableContainer" class="vertices-table-container">
-                            <!-- Se llenará dinámicamente -->
-                        </div>
                     </div>
-                </section>
+
+                    <!-- Tabla de Vértices -->
+                    <div id="verticesTableContainer" class="vertices-table-container">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+            </section>
 
         </div>
 

@@ -122,9 +122,9 @@ const FormManager = (() => {
     const eliminarRestriccion = (id) => {
         const restricciones = document.querySelectorAll('.restriction-item');
 
-        // No permitir eliminar si solo hay una restricción
-        if (restricciones.length <= 1) {
-            showToast('Debe haber al menos una restricción', 'warning');
+        // No permitir eliminar si hay 2 o menos restricción
+        if (restricciones.length <= 2) {
+            showToast('Debe haber al menos dos restricción', 'warning');
             return;
         }
 
@@ -173,10 +173,10 @@ const FormManager = (() => {
      * Obtiene los datos del formulario con validaciones robustas
      */
     const obtenerDatos = () => {
-        // Validar que haya al menos una restricción
+        // Validar que haya al menos dos restriccones
         const restricciones = document.querySelectorAll('.restriction-item');
-        if (restricciones.length === 0) {
-            throw new Error('❌ Debe agregar al menos una restricción');
+        if (restricciones.length < 2) {
+            throw new Error('❌ Debe agregar al menos dos restricción');
         }
 
         // Obtener función objetivo
