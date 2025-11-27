@@ -63,6 +63,8 @@ public final class Constants {
      */
     public static class Transporte {
         public static final String TRANSPORTE_SERVICE_PATH = "/transporte";
+        public static final String TRANSPORTE_SERVICE_PATH_RESOLVE = "/resolver";
+        public static final String TRANSPORTE_SERVICE_PATH_COMPARE = "/comparar";
 
         private Transporte(){}
     }

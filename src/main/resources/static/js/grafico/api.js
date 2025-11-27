@@ -90,4 +90,3 @@ const ApiService = (() => {
 
 // Log de inicialización
 console.log('✅ ApiService inicializado');
-console.log('📍 Configuración:', ApiService.getConfig());

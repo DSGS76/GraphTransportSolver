@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const header = document.querySelector('header');
     let lastScrollTop = 0;
 
+    // ===== MANEJO DE SCROLL =====
     function handleScroll() {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
