@@ -7,6 +7,7 @@
 
     <!-- CSS Global (siempre se carga) -->
     <link th:href="@{/css/main.css}" rel="stylesheet">
+    <link th:href="@{/css/notificaciones.css}" rel="stylesheet">
 
     <!-- CSS Específico de Index (solo en página principal) -->
     <link th:if="${page == 'index'}"
@@ -24,7 +25,8 @@
     <script th:if="${page == 'grafico'}"
             th:src="@{/webjars/chart.js/4.5.1/dist/chart.umd.js}"></script>
 
-    <!-- Header Script para efecto scroll (global) -->
+    <!-- Scripts globales -->
+    <script th:src="@{/js/notificaciones.js}" defer></script>
     <script th:src="@{/js/header.js}" defer></script>
 
     <!-- Meta tags adicionales -->

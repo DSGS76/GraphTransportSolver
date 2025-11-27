@@ -33,7 +33,7 @@ const FormManager = (() => {
     };
 
     /**
-     * Valida la función objetivo en tiempo real
+     * Válida la función objetivo en tiempo real
      */
     const validarFuncionObjetivo = () => {
         const x1 = parseFloat(document.getElementById('coefZ_x1').value) || 0;
@@ -185,7 +185,7 @@ const FormManager = (() => {
 
         // Validar coeficientes de función objetivo
         if (isNaN(coefX1) || isNaN(coefX2)) {
-            throw new Error('❌ Los coeficientes de la función objetivo deben ser números válidos');
+            throw new Error('Los coeficientes de la función objetivo deben ser números válidos');
         }
 
         const datos = {
@@ -209,7 +209,7 @@ const FormManager = (() => {
 
             // Validar valores numéricos
             if (isNaN(coefX1) || isNaN(coefX2) || isNaN(ladoDerecho)) {
-                throw new Error(`❌ La restricción ${index + 1} tiene valores no numéricos`);
+                throw new Error(`La restricción ${index + 1} tiene valores no numéricos`);
             }
 
             datos.restricciones.push({
@@ -234,8 +234,17 @@ const FormManager = (() => {
     /**
      * Limpia el formulario completamente
      */
-    const limpiarFormulario = () => {
-        if (!confirm('¿Está seguro de limpiar todo el formulario?')) {
+    const limpiarFormulario = async () => {
+        // Usar modal de confirmación personalizado
+        const confirmado = await Notificaciones.confirm(
+            '¿Está seguro de limpiar el problema?',
+            'Se perderán todos los datos ingresados y no podrás recuperarlos.',
+            'Limpiar Problema',
+            'Sí, limpiar',
+            'Cancelar'
+        );
+
+        if (!confirmado) {
             return;
         }
 
@@ -256,14 +265,19 @@ const FormManager = (() => {
         agregarRestriccion();
         agregarRestriccion();
 
-
         // Ocultar resultados
         const resultadosSection = document.getElementById('resultadosSection');
         if (resultadosSection) {
             resultadosSection.style.display = 'none';
         }
 
-        showToast('✓ Formulario limpiado', 'info');
+        // Ocultar botón de exportar
+        const btnExportar = document.getElementById('btnExportarGrafica');
+        if (btnExportar) {
+            btnExportar.style.display = 'none';
+        }
+
+        showToast('Formulario limpiado correctamente', 'info');
     };
 
     /**
@@ -317,41 +331,16 @@ const FormManager = (() => {
     };
 
     /**
-     * Muestra un toast notification mejorado
+     * Muestra una notificación usando el sistema global
      */
     const showToast = (message, type = 'info') => {
-        const container = document.getElementById('toastContainer');
-        if (!container) {
-            console.warn('Toast container no encontrado');
-            return;
+        // Usar el sistema de notificaciones global
+        if (typeof Notificaciones !== 'undefined') {
+            Notificaciones.show(message, type);
+        } else {
+            console.error('Sistema de notificaciones no disponible');
+            console.log(`[${type.toUpperCase()}] ${message}`);
         }
-
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-
-        const icons = {
-            success: '✓',
-            error: '✕',
-            warning: '⚠',
-            info: 'ℹ'
-        };
-
-        toast.innerHTML = `
-            <span class="toast-icon">${icons[type] || 'ℹ'}</span>
-            <span class="toast-message">${message}</span>
-            <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
-        `;
-
-        container.appendChild(toast);
-
-        // Animar entrada
-        setTimeout(() => toast.classList.add('toast-show'), 10);
-
-        // Auto remover después de 4 segundos
-        setTimeout(() => {
-            toast.classList.remove('toast-show');
-            setTimeout(() => toast.remove(), 300);
-        }, 4000);
     };
 
     // API Pública

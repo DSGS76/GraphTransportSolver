@@ -608,7 +608,9 @@ const ChartManager = (() => {
     const exportarImagen = (filename = 'grafica-metodo-grafico.png') => {
         if (!chartInstance) {
             console.warn('No hay gráfica para exportar');
-            FormManager.showToast('No hay gráfica para exportar', 'warning');
+            if (typeof Notificaciones !== 'undefined') {
+                Notificaciones.warning('No hay gráfica disponible para exportar');
+            }
             return;
         }
 
@@ -620,10 +622,14 @@ const ChartManager = (() => {
             link.click();
 
             console.log('💾 Gráfica exportada:', filename);
-            FormManager.showToast('✅ Gráfica exportada exitosamente', 'success');
+            if (typeof Notificaciones !== 'undefined') {
+                Notificaciones.success('Gráfica exportada exitosamente como ' + filename);
+            }
         } catch (error) {
             console.error('❌ Error al exportar:', error);
-            FormManager.showToast('Error al exportar la gráfica', 'error');
+            if (typeof Notificaciones !== 'undefined') {
+                Notificaciones.error('Error al exportar la gráfica: ' + error.message);
+            }
         }
     };
 

@@ -104,7 +104,34 @@ const MainApp = (() => {
             if (apiResponse.success && apiResponse.data) {
                 console.log('✅ Solución obtenida:', apiResponse.data);
                 mostrarResultados(apiResponse.data);
-                FormManager.showToast('¡Problema resuelto exitosamente!', 'success');
+
+                // Notificación de éxito con título según el tipo de solución
+                if (typeof Notificaciones !== 'undefined') {
+                    const solucion = apiResponse.data;
+                    const tipo = solucion.tipoSolucion;
+
+                    // Obtener valores de forma segura
+                    let valorZ = 'N/A';
+                    let x1 = 'N/A';
+                    let x2 = 'N/A';
+
+                    if (solucion.puntoOptimo) {
+                        x1 = solucion.puntoOptimo.x1?.toFixed(2) || 'N/A';
+                        x2 = solucion.puntoOptimo.x2?.toFixed(2) || 'N/A';
+                        valorZ = solucion.puntoOptimo.valorZ?.toFixed(2) || solucion.valorOptimo?.toFixed(2) || 'N/A';
+                    }
+
+                    const mensaje = MENSAJES_SOLUCION[tipo] ?
+                        MENSAJES_SOLUCION[tipo](valorZ, x1, x2) :
+                        { titulo: 'Éxito', descripcion: 'Problema resuelto', clase: 'success' };
+
+                    Notificaciones.showWithTitle(
+                        mensaje.titulo,
+                        mensaje.descripcion,
+                        mensaje.clase,
+                        6000
+                    );
+                }
             } else {
                 throw new Error(apiResponse.message || 'Error al resolver el problema');
             }
@@ -122,7 +149,17 @@ const MainApp = (() => {
             console.error('Mensaje:', error.message);
             console.error('Stack:', error.stack);
 
-            FormManager.showToast(error.message || 'Error al resolver el problema', 'error');
+            // Notificación de error con título
+            if (typeof Notificaciones !== 'undefined') {
+                Notificaciones.showWithTitle(
+                    'Error al resolver',
+                    error.message || 'Ocurrió un error al procesar el problema',
+                    'error',
+                    5000
+                );
+            } else {
+                FormManager.showToast(error.message || 'Error al resolver el problema', 'error');
+            }
 
             console.error('Detalles del error:', {
                 mensaje: error.message,

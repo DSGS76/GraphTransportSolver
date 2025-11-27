@@ -1,0 +1,449 @@
+/* ==========================================
+   SISTEMA DE NOTIFICACIONES
+   ========================================== */
+
+.notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    pointer-events: none;
+    max-width: 400px;
+    width: 100%;
+}
+
+.notification {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 20px;
+    padding-bottom: 20px;
+    margin-bottom: 12px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    pointer-events: all;
+    transform: translateX(calc(100% + 40px));
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border-left: 4px solid #3498db;
+    min-height: 60px;
+    position: relative;
+    overflow: hidden;
+}
+
+.notification-show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification-hide {
+    transform: translateX(calc(100% + 40px));
+    opacity: 0;
+}
+
+/* Iconos */
+.notification-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+/* Contenido */
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+    color: #2c3e50;
+    line-height: 1.3;
+}
+
+.notification-message {
+    font-size: 14px;
+    color: #5a6c7d;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+/* Botón cerrar */
+.notification-close {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: #95a5a6;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.notification-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #2c3e50;
+}
+
+/* ==========================================
+   TIPOS DE NOTIFICACIÓN
+   ========================================== */
+
+/* Success */
+.notification-success {
+    border-left-color: #27ae60;
+}
+
+.notification-success .notification-title {
+    color: #27ae60;
+}
+
+/* Error */
+.notification-error {
+    border-left-color: #e74c3c;
+}
+
+.notification-error .notification-title {
+    color: #e74c3c;
+}
+
+/* Warning */
+.notification-warning {
+    border-left-color: #f39c12;
+}
+
+.notification-warning .notification-title {
+    color: #f39c12;
+}
+
+/* Info */
+.notification-info {
+    border-left-color: #3498db;
+}
+
+
+.notification-info .notification-title {
+    color: #3498db;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+    .notification-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+
+    .notification {
+        padding: 14px 16px;
+        margin-bottom: 10px;
+    }
+
+    .notification-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
+    }
+
+    .notification-title {
+        font-size: 14px;
+    }
+
+    .notification-message {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notification-container {
+        top: 5px;
+        right: 5px;
+        left: 5px;
+    }
+
+    .notification {
+        padding: 12px 14px;
+        gap: 10px;
+    }
+}
+
+/* ==========================================
+   ANIMACIONES ADICIONALES
+   ========================================== */
+
+@keyframes notification-progress {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
+.notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    background: currentColor;
+    opacity: 0.6;
+    border-radius: 0 0 0 12px;
+    transition: width 0.1s linear;
+}
+
+/* Colores de la barra de progreso según el tipo */
+.notification-success .notification-progress {
+    background: linear-gradient(90deg, #27ae60, #2ecc71);
+}
+
+.notification-error .notification-progress {
+    background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+
+.notification-warning .notification-progress {
+    background: linear-gradient(90deg, #f39c12, #e67e22);
+}
+
+.notification-info .notification-progress {
+    background: linear-gradient(90deg, #3498db, #2980b9);
+}
+
+/* Animación de sacudida para errores críticos */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.notification-error.shake {
+    animation: shake 0.5s;
+}
+
+/* Efecto de resplandor al aparecer */
+.notification-show {
+    animation: slideInRight 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+               glow 0.5s ease-in-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(calc(100% + 40px));
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes glow {
+    0% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+    50% { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25); }
+    100% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+}
+
+/* ==========================================
+   MODAL DE CONFIRMACIÓN
+   ========================================== */
+
+.modal-confirmacion-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 20px;
+}
+
+.modal-confirmacion-overlay.mostrar {
+    opacity: 1;
+}
+
+.modal-confirmacion-overlay.cerrando {
+    opacity: 0;
+}
+
+.modal-confirmacion {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 100%;
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.modal-confirmacion-overlay.mostrar .modal-confirmacion {
+    transform: scale(1);
+}
+
+.modal-confirmacion-overlay.cerrando .modal-confirmacion {
+    transform: scale(0.9);
+}
+
+/* Header del modal */
+.modal-header {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    padding: 20px 24px;
+    border-bottom: none;
+}
+
+.modal-titulo {
+    margin: 0;
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* Contenido del modal */
+.modal-contenido {
+    padding: 24px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.modal-icono {
+    font-size: 32px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.modal-texto {
+    flex: 1;
+}
+
+.modal-texto h4 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.modal-texto p {
+    margin: 0;
+    color: #5a6c7d;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Botones del modal */
+.modal-botones {
+    padding: 16px 24px;
+    background: #f8f9fa;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-modal {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.btn-modal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-modal:active {
+    transform: translateY(0);
+}
+
+.btn-modal:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+}
+
+.icono-btn {
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* Botón cancelar */
+.btn-cancelar {
+    background: white;
+    color: #5a6c7d;
+    border: 2px solid #e1e8ed;
+}
+
+.btn-cancelar:hover {
+    background: #f8f9fa;
+    border-color: #cbd5e0;
+}
+
+/* Botón confirmar */
+.btn-confirmar {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+}
+
+.btn-confirmar:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-confirmacion {
+        margin: 0 10px;
+    }
+
+    .modal-contenido {
+        padding: 20px;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .modal-icono {
+        font-size: 48px;
+    }
+
+    .modal-botones {
+        flex-direction: column-reverse;
+        gap: 10px;
+    }
+
+    .btn-modal {
+        width: 100%;
+    }
+}
+
