@@ -173,7 +173,7 @@ const FormManager = (() => {
      * Obtiene los datos del formulario con validaciones robustas
      */
     const obtenerDatos = () => {
-        // Validar que haya al menos dos restriccones
+        // Validar que haya al menos dos restricciones
         const restricciones = document.querySelectorAll('.restriction-item');
         if (restricciones.length < 2) {
             throw new Error('❌ Debe agregar al menos dos restricción');
@@ -235,7 +235,7 @@ const FormManager = (() => {
      * Limpia el formulario completamente
      */
     const limpiarFormulario = async () => {
-        // Usar modal de confirmación personalizado
+        // Usar modal de confirmación personalizada
         const confirmado = await Notificaciones.confirm(
             '¿Está seguro de limpiar el problema?',
             'Se perderán todos los datos ingresados y no podrás recuperarlos.',

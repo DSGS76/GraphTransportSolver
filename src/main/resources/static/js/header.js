@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleScroll() {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
-        // Si se ha hecho scroll hacia abajo más de 50px, agregar clase scrolled
+        // Sí se ha hecho scroll hacia abajo más de 50px, agregar clase scrolled
         if (scrollTop > 50) {
             header.classList.add('scrolled');
         } else {

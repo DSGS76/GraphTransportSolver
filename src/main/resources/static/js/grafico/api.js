@@ -73,7 +73,7 @@ const ApiService = (() => {
         } catch (error) {
             console.error('❌ Error en la petición:', error);
 
-            // Re-lanzar error con mensaje más descriptivo
+            // Relanzar error con mensaje más descriptivo
             if (error.message.includes('Failed to fetch')) {
                 throw new Error('No se puede conectar con el servidor. Verifique que el backend esté ejecutándose.');
             }

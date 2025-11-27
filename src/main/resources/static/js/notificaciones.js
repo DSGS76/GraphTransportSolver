@@ -88,7 +88,7 @@ class NotificationSystem {
                 progressBar.style.width = '0%';
             }, 50);
 
-            // Auto-cerrar cuando termine la duración
+            // Autocerrar cuando termine la duración
             setTimeout(() => {
                 this.close(notification);
             }, duration);
@@ -178,7 +178,7 @@ class NotificationSystem {
                 progressBar.style.width = '0%';
             }, 50);
 
-            // Auto-cerrar cuando termine la duración
+            // Autocerrar cuando termine la duración
             setTimeout(() => {
                 this.close(notification);
             }, duration);
