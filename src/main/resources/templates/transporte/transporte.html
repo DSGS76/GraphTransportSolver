@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<div th:replace="~{fragments/layout :: layout(~{::main})}">
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="hero-icon">🚚</div>
+                <h1 class="hero-title">Modelo de Transporte</h1>
+                <p class="hero-description">
+                    Optimiza la distribución de productos desde múltiples orígenes a múltiples destinos.
+                    Encuentra la solución de costo mínimo usando tres métodos diferentes.
+                </p>
+            </div>
+        </section>
+
+        <!-- Main Container -->
+        <div class="container">
+            <!-- Card: Definir Problema -->
+            <section class="card">
+                <div class="card-header">
+                    <div class="card-header-content">
+                        <span class="card-icon">✏️</span>
+                        <h2 class="card-title">Definir Problema de Transporte</h2>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Configuración de dimensiones -->
+                    <div class="dimensions-config">
+                        <h3 class="section-title">
+                            <span class="section-icon">📐</span>
+                            Dimensiones del Problema
+                        </h3>
+
+                        <div class="dimensions-inputs">
+                            <div class="form-group">
+                                <label class="form-label" for="numOrigenes">
+                                    Número de Orígenes (m)
+                                </label>
+                                <input type="number" id="numOrigenes" class="form-control"
+                                       value="3" min="2" max="50" step="1">
+                                <small class="form-hint">Mínimo 2, máximo 50</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="numDestinos">
+                                    Número de Destinos (n)
+                                </label>
+                                <input type="number" id="numDestinos" class="form-control"
+                                       value="2" min="2" max="50" step="1">
+                                <small class="form-hint">Mínimo 2, máximo 50</small>
+                            </div>
+
+                            <button id="btnGenerarTablas" class="btn btn-accent">
+                                <span class="btn-icon">🔄</span>
+                                <span class="btn-text">Generar Tablas</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Ofertas y Demandas -->
+                    <div class="supply-demand-section">
+                        <div class="supply-section">
+                            <h3 class="section-title">
+                                <span class="section-icon">📦</span>
+                                Ofertas (Capacidades)
+                            </h3>
+                            <div id="ofertasContainer" class="supply-container">
+                                <!-- Se genera dinámicamente -->
+                            </div>
+                        </div>
+
+                        <div class="demand-section">
+                            <h3 class="section-title">
+                                <span class="section-icon">🎯</span>
+                                Demandas (Requerimientos)
+                            </h3>
+                            <div id="demandasContainer" class="demand-container">
+                                <!-- Se genera dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Matriz de Costos -->
+                    <div class="costs-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">💰</span>
+                            Matriz de Costos Unitarios
+                        </h3>
+                        <div class="table-container">
+                            <div id="costosTableContainer">
+                                <!-- Se genera dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Método de Solución -->
+                    <div class="method-section">
+                        <h3 class="section-title">
+                            <span class="section-icon">⚙️</span>
+                            Método de Solución Inicial
+                        </h3>
+                        <select id="metodoSolucion" class="form-control method-select">
+                            <option value="ESQUINA_NOROESTE">Esquina Noroeste</option>
+                            <option value="COSTO_MINIMO" selected>Costo Mínimo</option>
+                            <option value="VOGEL">Vogel (VAM)</option>
+                        </select>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="action-buttons">
+                        <button id="btnResolver" class="btn btn-success btn-lg">
+                            <span class="btn-icon">🚀</span>
+                            <span class="btn-text">Resolver</span>
+                        </button>
+                        <button id="btnComparar" class="btn btn-accent btn-lg">
+                            <span class="btn-icon">📊</span>
+                            <span class="btn-text">Comparar Métodos</span>
+                        </button>
+                        <button id="btnEjemplo" class="btn btn-accent btn-lg">
+                            <span class="btn-icon">💡</span>
+                            <span class="btn-text">Ejemplo</span>
+                        </button>
+                        <button id="btnLimpiar" class="btn btn-secondary btn-lg">
+                            <span class="btn-icon">🗑️</span>
+                            <span class="btn-text">Limpiar</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de Resultados -->
+            <section id="resultadosSection" class="card card-results" style="display: none;">
+                <div class="card-header">
+                    <div class="card-header-content">
+                        <span class="card-icon">📊</span>
+                        <h2 class="card-title">Resultados</h2>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Información de la Solución -->
+                    <div id="solucionInfo" class="solution-info">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+
+                    <!-- Matriz de Asignaciones -->
+                    <div id="asignacionesContainer" class="assignments-container">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+
+                    <!-- Balance del Problema -->
+                    <div id="balanceInfo" class="balance-info">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de Comparación -->
+            <section id="comparacionSection" class="card card-comparison" style="display: none;">
+                <div class="card-header">
+                    <div class="card-header-content">
+                        <span class="card-icon">📊</span>
+                        <h2 class="card-title">Comparación de Métodos</h2>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div id="comparacionContainer">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Resolviendo problema de transporte...</p>
+        </div>
+    </main>
+</div>
+
+<script th:src="@{/js/transporte/form.js}"></script>
+<script th:src="@{/js/transporte/api.js}"></script>
+<script th:src="@{/js/transporte/render.js}"></script>
+<script th:src="@{/js/transporte/main.js}"></script>
+</body>
+</html>

@@ -277,7 +277,7 @@ const FormManager = (() => {
             btnExportar.style.display = 'none';
         }
 
-        showToast('Formulario limpiado correctamente', 'info');
+        showToast('Problema limpiado correctamente', 'info');
     };
 
     /**

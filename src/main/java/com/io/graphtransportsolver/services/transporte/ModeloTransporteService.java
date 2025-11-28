@@ -2,6 +2,7 @@ package com.io.graphtransportsolver.services.transporte;
 
 import com.io.graphtransportsolver.models.transporte.ProblemaTransporte;
 import com.io.graphtransportsolver.models.transporte.SolucionTransporte;
+import com.io.graphtransportsolver.models.transporte.enums.TipoBalance;
 import com.io.graphtransportsolver.presentation.dto.ApiResponseDTO;
 import com.io.graphtransportsolver.presentation.dto.transporte.ComparacionMetodosDTO;
 import com.io.graphtransportsolver.presentation.dto.transporte.ProblemaTransporteDTO;
@@ -26,6 +27,7 @@ import java.util.Arrays;
 public class ModeloTransporteService {
 
     private final SolucionInicialService solucionInicialService;
+    private final BalanceadorService balanceadorService;
 
     /**
      * Resuelve un problema de transporte usando el método especificado.
@@ -44,22 +46,33 @@ public class ModeloTransporteService {
             validarEntradaBasica(problemaDTO);
 
             // 2. Convertir DTO a modelo de dominio
-            ProblemaTransporte problema = convertirDTOaModelo(problemaDTO);
+            ProblemaTransporte problemaOriginal = convertirDTOaModelo(problemaDTO);
 
-            // 3. Resolver usando el método especificado
+            // 3. Guardar el tipo de balance ORIGINAL (antes de balancear)
+            TipoBalance tipoBalanceOriginal = problemaOriginal.getTipoBalance();
+
+            // 4. Balancear el problema
+            ProblemaTransporte problemaBalanceado = balanceadorService.balancear(problemaOriginal);
+
+            log.debug("Problema original: tipoBalance={}", tipoBalanceOriginal);
+            log.debug("Problema balanceado: tieneFicticio={}, tipoBalance={}",
+                    problemaBalanceado.isTieneFicticio(),
+                    problemaBalanceado.getTipoBalance());
+
+            // 5. Resolver usando el método especificado CON EL PROBLEMA BALANCEADO
             SolucionTransporte solucion = solucionInicialService.encontrarSolucionInicial(
-                    problema,
+                    problemaBalanceado,
                     problemaDTO.metodoInicial()
             );
 
             log.info("Problema resuelto con método: {}", problemaDTO.metodoInicial());
             log.info("Costo total: {}", solucion.getCostoTotal());
 
-            // 4. Convertir resultado a DTO
+            // 6. Convertir resultado a DTO usando el tipo de balance ORIGINAL
             SolucionTransporteDTO solucionDTO = convertirSolucionADTO(
                     solucion,
-                    problema,
-                    problemaDTO
+                    problemaBalanceado,
+                    tipoBalanceOriginal
             );
 
             // 5. Configurar respuesta exitosa
@@ -100,21 +113,31 @@ public class ModeloTransporteService {
             validarEntradaBasica(problemaDTO);
 
             // 2. Convertir DTO a modelo de dominio
-            ProblemaTransporte problema = convertirDTOaModelo(problemaDTO);
+            ProblemaTransporte problemaOriginal = convertirDTOaModelo(problemaDTO);
 
-            // 3. Resolver con los tres métodos
-            SolucionTransporte[] soluciones = solucionInicialService.compararMetodos(problema);
+            // 3. Guardar el tipo de balance ORIGINAL (antes de balancear)
+            TipoBalance tipoBalanceOriginal = problemaOriginal.getTipoBalance();
+
+            // 4. Balancear el problema
+            ProblemaTransporte problemaBalanceado = balanceadorService.balancear(problemaOriginal);
+
+            log.debug("Problema original para comparación: tipoBalance={}", tipoBalanceOriginal);
+            log.debug("Problema balanceado para comparación: tieneFicticio={}",
+                    problemaBalanceado.isTieneFicticio());
+
+            // 5. Resolver con los tres métodos
+            SolucionTransporte[] soluciones = solucionInicialService.compararMetodos(problemaBalanceado);
 
             log.info("Comparación completada:");
             log.info("  - Esquina Noroeste: Costo = {}", soluciones[0].getCostoTotal());
             log.info("  - Costo Mínimo: Costo = {}", soluciones[1].getCostoTotal());
             log.info("  - Vogel: Costo = {}", soluciones[2].getCostoTotal());
 
-            // 4. Convertir resultados a DTOs
+            // 6. Convertir resultados a DTOs usando el problema balanceado y tipo original
             ComparacionMetodosDTO comparacionDTO = new ComparacionMetodosDTO(
-                    convertirSolucionADTO(soluciones[0], problema, problemaDTO),
-                    convertirSolucionADTO(soluciones[1], problema, problemaDTO),
-                    convertirSolucionADTO(soluciones[2], problema, problemaDTO)
+                    convertirSolucionADTO(soluciones[0], problemaBalanceado, tipoBalanceOriginal),
+                    convertirSolucionADTO(soluciones[1], problemaBalanceado, tipoBalanceOriginal),
+                    convertirSolucionADTO(soluciones[2], problemaBalanceado, tipoBalanceOriginal)
             );
 
             // 5. Configurar respuesta exitosa
@@ -241,25 +264,22 @@ public class ModeloTransporteService {
     private SolucionTransporteDTO convertirSolucionADTO(
             SolucionTransporte solucion,
             ProblemaTransporte problemaBalanceado,
-            ProblemaTransporteDTO problemaOriginal) {
+            TipoBalance tipoBalanceOriginal) {
 
         log.debug("Convirtiendo solución a DTO");
+        log.debug("Tipo balance original: {}, tieneFicticio: {}",
+                tipoBalanceOriginal, problemaBalanceado.isTieneFicticio());
 
-        // Usar nombres del problema original si están disponibles, o del balanceado
-        String[] nombresOrigenes = problemaOriginal.nombresOrigenes() != null ?
-                problemaOriginal.nombresOrigenes() :
-                problemaBalanceado.getNombresOrigenes();
-
-        String[] nombresDestinos = problemaOriginal.nombresDestinos() != null ?
-                problemaOriginal.nombresDestinos() :
-                problemaBalanceado.getNombresDestinos();
+        // El problema balanceado incluye el origen/destino ficticio con su nombre "Ficticio"
+        String[] nombresOrigenes = problemaBalanceado.getNombresOrigenes();
+        String[] nombresDestinos = problemaBalanceado.getNombresDestinos();
 
         return new SolucionTransporteDTO(
                 solucion.getAsignaciones(),
                 solucion.getCostoTotal(),
                 solucion.getMetodoUtilizado(),
                 problemaBalanceado.isTieneFicticio(),
-                problemaBalanceado.getTipoBalance(),
+                tipoBalanceOriginal,
                 nombresOrigenes,
                 nombresDestinos
         );

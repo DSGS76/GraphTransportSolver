@@ -357,17 +357,79 @@ const ChartManager = (() => {
 
             if (regionData.length === 2) {
                 // Caso especial: solo 2 vértices (línea)
+                // Crear un área extendida desde la línea hacia el "infinito"
+                console.log('📐 Creando área desde 2 puntos:', regionData);
+
+                const [punto1, punto2] = regionData;
+
+                // Determinar si es una línea horizontal, vertical o diagonal
+                const esHorizontal = Math.abs(punto1.y - punto2.y) < 0.01;
+                const esVertical = Math.abs(punto1.x - punto2.x) < 0.01;
+
+                let areaExtendida;
+
+                if (esHorizontal) {
+                    // Línea horizontal - extender hacia arriba
+                    const minX = Math.min(punto1.x, punto2.x);
+                    const maxX = Math.max(punto1.x, punto2.x);
+                    const y = punto1.y;
+
+                    areaExtendida = [
+                        { x: minX, y: y },
+                        { x: maxX, y: y },
+                        { x: maxX, y: limits.maxY },
+                        { x: minX, y: limits.maxY },
+                        { x: minX, y: y }
+                    ];
+                } else if (esVertical) {
+                    // Línea vertical - extender hacia la derecha
+                    const x = punto1.x;
+                    const minY = Math.min(punto1.y, punto2.y);
+                    const maxY = Math.max(punto1.y, punto2.y);
+
+                    areaExtendida = [
+                        { x: x, y: minY },
+                        { x: x, y: maxY },
+                        { x: limits.maxX, y: maxY },
+                        { x: limits.maxX, y: minY },
+                        { x: x, y: minY }
+                    ];
+                } else {
+                    // Línea diagonal - extender hacia arriba-derecha creando un área grande
+                    // Ordenar puntos: el que tiene menor x a la izquierda, el de mayor x a la derecha
+                    const [puntoIzq, puntoDer] = punto1.x < punto2.x ? [punto1, punto2] : [punto2, punto1];
+
+                    // Para una región no acotada con restricciones MAYOR_IGUAL,
+                    // la región factible está ARRIBA de la línea diagonal
+                    // Crear un polígono que cubra desde la línea hasta el borde superior-derecho del gráfico
+                    areaExtendida = [
+                        puntoIzq,                           // Punto izquierdo de la línea
+                        puntoDer,                           // Punto derecho de la línea
+                        { x: limits.maxX, y: puntoDer.y },  // Extender horizontalmente a la derecha
+                        { x: limits.maxX, y: limits.maxY }, // Esquina superior derecha del gráfico
+                        { x: puntoIzq.x, y: limits.maxY },  // Extender verticalmente hacia arriba
+                        puntoIzq                            // Cerrar el polígono
+                    ];
+                }
+
+                console.log('📐 Área extendida creada:', areaExtendida);
+
                 return {
                     type: 'line',
                     label: 'Región Factible (No Acotada)',
-                    data: regionData,
+                    data: areaExtendida,
                     backgroundColor: 'rgba(37, 99, 235, 0.15)',
                     borderColor: 'rgba(37, 99, 235, 0.6)',
                     borderWidth: 2,
                     borderDash: [10, 5],
                     pointRadius: 0,
-                    fill: false,
+                    pointHoverRadius: 0,
+                    fill: {
+                        target: 'origin',
+                        above: 'rgba(37, 99, 235, 0.15)'
+                    },
                     showLine: true,
+                    tension: 0,
                     order: 3
                 };
             }

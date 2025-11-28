@@ -41,8 +41,11 @@ public class SolucionInicialService {
             throw new IllegalArgumentException("El método no puede ser nulo");
         }
 
-        // Balancear el problema si es necesario
-        ProblemaTransporte problemaBalanceado = balanceadorService.balancear(problema);
+        // Balancear el problema SOLO si no está ya balanceado
+        // (El ModeloTransporteService ahora balancea antes de llamar a este método)
+        ProblemaTransporte problemaBalanceado = problema.esBalanceado()
+                ? problema
+                : balanceadorService.balancear(problema);
 
         // Seleccionar la estrategia según el método
         SolucionInicialStrategy strategy = obtenerEstrategia(metodo);
@@ -72,7 +75,10 @@ public class SolucionInicialService {
         // Validaciones de lógica de negocio
         validarProblema(problema);
 
-        ProblemaTransporte problemaBalanceado = balanceadorService.balancear(problema);
+        // Balancear el problema SOLO si no está ya balanceado
+        ProblemaTransporte problemaBalanceado = problema.esBalanceado()
+                ? problema
+                : balanceadorService.balancear(problema);
 
         SolucionTransporte[] soluciones = new SolucionTransporte[3];
         soluciones[0] = esquinaNoroesteStrategy.encontrarSolucionInicial(problemaBalanceado);

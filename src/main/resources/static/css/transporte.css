@@ -1,0 +1,703 @@
+/* ============================================
+   TRANSPORTE.CSS - ESTILOS DEL MODELO DE TRANSPORTE
+   ============================================ */
+
+/* ===== CONFIGURACIÓN DE DIMENSIONES ===== */
+.dimensions-config {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 2px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dimensions-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 1.5rem;
+    align-items: end;
+    margin-top: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.form-control {
+    padding: 0.75rem 1rem;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.form-control:hover {
+    border-color: #adb5bd;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    background: #fff;
+}
+
+.form-hint {
+    display: block;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+    font-style: italic;
+}
+
+/* ===== OFERTAS Y DEMANDAS ===== */
+.supply-demand-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.supply-container,
+.demand-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+/* Scrollbar personalizada para contenedores de oferta/demanda */
+.supply-container::-webkit-scrollbar,
+.demand-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.supply-container::-webkit-scrollbar-track,
+.demand-container::-webkit-scrollbar-track {
+    background: #f1f3f4;
+    border-radius: 4px;
+}
+
+.supply-container::-webkit-scrollbar-thumb,
+.demand-container::-webkit-scrollbar-thumb {
+    background: #adb5bd;
+    border-radius: 4px;
+}
+
+.supply-container::-webkit-scrollbar-thumb:hover,
+.demand-container::-webkit-scrollbar-thumb:hover {
+    background: #6c757d;
+}
+
+.supply-item,
+.demand-item {
+    background: white;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.supply-item:hover,
+.demand-item:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.item-label {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.item-input-group {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1rem;
+    align-items: center;
+}
+
+.item-name-input {
+    padding: 0.65rem;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    font-weight: 500;
+}
+
+.item-name-input:hover {
+    border-color: #adb5bd;
+}
+
+.item-name-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    background: white;
+}
+
+.item-value-input {
+    padding: 0.75rem;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.item-value-input:hover {
+    border-color: #adb5bd;
+}
+
+.item-value-input:focus {
+    outline: none;
+    border-color: var(--success-color);
+    box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.1);
+    background: white;
+}
+
+/* ===== MATRIZ DE COSTOS ===== */
+.costs-section {
+    margin-bottom: 2rem;
+}
+
+.table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 600px;
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Scrollbar personalizada para tabla de costos */
+.table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: #f1f3f4;
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: #adb5bd;
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: #6c757d;
+}
+
+.costs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.costs-table thead {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 100%);
+    color: white;
+}
+
+.costs-table th {
+    padding: 1rem;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.costs-table td {
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px solid #e9ecef;
+}
+
+.costs-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.row-header {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.cost-input {
+    width: 85px;
+    padding: 0.6rem;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    font-size: 0.95rem;
+}
+
+.cost-input:hover {
+    border-color: #adb5bd;
+}
+
+.cost-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    background: white;
+}
+
+/* ===== MÉTODO DE SOLUCIÓN ===== */
+.method-section {
+    margin-bottom: 2rem;
+}
+
+.method-select {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    background-color: white;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232c3e50' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 3rem;
+}
+
+.method-select:hover {
+    border-color: #adb5bd;
+    background-color: white;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232c3e50' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+}
+
+.method-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    background-color: white;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232c3e50' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+}
+
+/* ===== INFORMACIÓN DE SOLUCIÓN ===== */
+.solution-info {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.solution-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.solution-badge {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    border-radius: 30px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, var(--success-color) 0%, #00a085 100%);
+    color: white;
+}
+
+.solution-cost {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 1.5rem;
+    border: 3px solid var(--success-color);
+}
+
+.cost-display {
+    text-align: center;
+}
+
+.cost-label {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.cost-value {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--success-color), #00a085);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.cost-currency {
+    font-size: 2rem;
+}
+
+.method-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+/* ===== MATRIZ DE ASIGNACIONES ===== */
+.assignments-container {
+    margin-bottom: 2rem;
+}
+
+.assignments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.assignments-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.assignments-table-wrapper {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 600px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Scrollbar personalizada para tabla de asignaciones */
+.assignments-table-wrapper::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.assignments-table-wrapper::-webkit-scrollbar-track {
+    background: #f1f3f4;
+    border-radius: 4px;
+}
+
+.assignments-table-wrapper::-webkit-scrollbar-thumb {
+    background: #adb5bd;
+    border-radius: 4px;
+}
+
+.assignments-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #6c757d;
+}
+
+.assignments-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.assignments-table thead {
+    background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+    color: white;
+}
+
+.assignments-table th {
+    padding: 1rem;
+    text-align: center;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.assignments-table td {
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid #e9ecef;
+}
+
+.assignments-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.cell-basic {
+    background: #d1fae5;
+    font-weight: 700;
+    color: var(--success-color);
+}
+
+.cell-zero {
+    color: #cbd5e0;
+    font-weight: 400;
+}
+
+.supply-cell,
+.demand-cell {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* ===== INFORMACIÓN DE BALANCE ===== */
+.balance-info {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 2px solid #e1e8ed;
+}
+
+.balance-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.balance-icon {
+    font-size: 2rem;
+}
+
+.balance-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.balance-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.balance-item {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.balance-item-label {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.balance-item-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.balance-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+.balance-badge-balanced {
+    background: linear-gradient(135deg, var(--success-color), #00a085);
+    color: white;
+}
+
+.balance-badge-excess-supply {
+    background: linear-gradient(135deg, var(--warning-color), #e67e22);
+    color: white;
+}
+
+.balance-badge-excess-demand {
+    background: linear-gradient(135deg, var(--accent-color), #c0392b);
+    color: white;
+}
+
+/* ===== COMPARACIÓN DE MÉTODOS ===== */
+.comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.comparison-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 3px solid #e1e8ed;
+    transition: all 0.3s ease;
+}
+
+.comparison-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.comparison-card-best {
+    border-color: var(--success-color);
+    background: linear-gradient(145deg, #d1fae5 0%, white 100%);
+}
+
+.comparison-method-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.comparison-cost {
+    text-align: center;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.comparison-cost-label {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.comparison-cost-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--success-color);
+}
+
+.comparison-best-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--success-color), #00a085);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.comparison-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 1rem;
+}
+
+/* ===== MEJORAS DE SCROLL ===== */
+
+/* Estilos para mejorar la legibilidad en tablas con scroll */
+.costs-table,
+.assignments-table {
+    min-width: max-content;
+}
+
+
+/* Responsive - Reducir altura máxima en móviles */
+@media (max-width: 768px) {
+    .supply-container,
+    .demand-container,
+    .table-container,
+    .assignments-table-wrapper {
+        max-height: 400px;
+    }
+
+    .supply-demand-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   ESTILOS PARA ADVERTENCIA DE BALANCEO
+   ============================================ */
+
+.balance-warning {
+    margin-top: 1.5rem;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border-left: 4px solid #ffc107;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.balance-warning-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.balance-warning-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.balance-warning-text {
+    flex: 1;
+}
+
+.balance-warning-title {
+    font-weight: 600;
+    color: #856404;
+    margin-bottom: 0.25rem;
+    font-size: 1rem;
+}
+
+.balance-warning-description {
+    font-size: 0.9rem;
+    color: #856404;
+    line-height: 1.4;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
